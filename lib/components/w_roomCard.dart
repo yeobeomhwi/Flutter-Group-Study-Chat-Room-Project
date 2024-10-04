@@ -1,19 +1,25 @@
+import 'dart:ffi';
+
 import 'package:app_team2/components/w_studyActionButtons.dart';
 import 'package:app_team2/components/w_subheading.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RoomCard extends StatefulWidget {
   final String title;
   final String host;
   final String content;
-  String startTime;
-  String endTime;
+  final String startTime;
+  final String endTime;
   final String topic;
   int attendee;
-  int maxParticipants;
+  final int maxParticipants;
   final String imageUrl;
-  bool reservation;
-  bool startStudy;
+  final bool reservations; // 예약 상태를 관리하는 Map
+  final bool startStudy;
+  final String currentUserId; // 현재 사용자 ID
+  Function(String) onButton;
+  final String docId; // 추가된 docId
 
   RoomCard({
     super.key,
@@ -26,22 +32,55 @@ class RoomCard extends StatefulWidget {
     required this.attendee,
     required this.maxParticipants,
     required this.imageUrl,
-    required this.reservation,
+    required this.reservations,
     required this.startStudy,
+    required this.currentUserId,
+    required this.onButton,
+    required this.docId, // 추가된 docId
   });
+
 
   @override
   _RoomCardState createState() => _RoomCardState();
 }
 
 class _RoomCardState extends State<RoomCard> {
-  bool open = false;
+  bool open = false; // 카드가 열려 있는지 여부
+
+  // Firestore 인스턴스 생성
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<void> updateReservationStatus() async {
+    try {
+      // 문서 스냅샷 가져오기
+      final docSnapshot = await _firestore.collection('study_rooms').doc(widget.docId).get();
+
+      // 문서 존재 여부 확인
+      if (docSnapshot.exists) {
+        // 'reservations' 필드에 안전하게 접근
+        final reservations = docSnapshot.data()?['reservations'] as Map<String, dynamic>? ?? {};
+
+        // 현재 사용자의 예약 상태를 확인
+        final currentUserReservation = reservations[widget.currentUserId] ?? false;
+
+        // 예약 상태 업데이트
+        await _firestore.collection('study_rooms').doc(widget.docId).update({
+          'reservations.${widget.currentUserId}': !currentUserReservation, // 현재 사용자의 예약 상태 반전
+        });
+      } else {
+        print('문서가 존재하지 않습니다. 문서 ID를 확인하세요.');
+      }
+    } catch (e) {
+      print('문서 검색 중 오류 발생: $e');
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: 210,
-      height: open ? 300 : 130, // 카드의 높이를 조정
+      height: open ? 300 : 140,
       child: Card(
         elevation: 4,
         margin: const EdgeInsets.symmetric(vertical: 8),
@@ -82,29 +121,31 @@ class _RoomCardState extends State<RoomCard> {
                         open = !open; // 상태를 반전
                       });
                     },
-                    icon: Icon(open ? Icons.remove : Icons.add),
+                    icon: Icon(open ? Icons.keyboard_arrow_up_outlined : Icons.keyboard_arrow_down_outlined),
                   ),
                 ],
               ),
               const SizedBox(height: 10),
-              // open 상태에 따라 content 가시성 조절
               Expanded(
                 child: Text(
                   widget.content,
-                  maxLines: open ? null : 3, // open이 true일 경우 최대 줄 수 제한 없음
-                  overflow: open ? null : TextOverflow.ellipsis, // open이 true일 경우 overflow 처리 없음
+                  maxLines: open ? 3 : 1,
+                  overflow: open ? null : TextOverflow.ellipsis,
                 ),
               ),
               const SizedBox(height: 8),
-              if (open) ...[ // open이 true일 때만 보이는 추가 정보
+              if (open) ...[
                 Text('시작 시간 : ${widget.startTime}', style: const TextStyle(fontSize: 12)),
                 Text('종료 시간 : ${widget.endTime}', style: const TextStyle(fontSize: 12)),
                 const SizedBox(height: 10),
                 Text('현재 인원 : ${widget.attendee} / ${widget.maxParticipants}'),
                 const SizedBox(height: 10),
                 StudyActionButton(
-                  reservation: widget.reservation,
+                  reservations: widget.reservations,
                   startStudy: widget.startStudy,
+                    onButton: () async {
+                      await updateReservationStatus(); // 버튼 클릭 시 예약 상태 업데이트 메소드 호출
+                    }
                 ),
               ],
             ],
