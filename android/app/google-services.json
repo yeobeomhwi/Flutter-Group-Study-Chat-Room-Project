@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "69348377635",
+    "project_id": "elice-flutter-team2",
+    "storage_bucket": "elice-flutter-team2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:69348377635:android:07f79e2b29fe7e65c55d96",
+        "android_client_info": {
+          "package_name": "com.app_team2.app_team2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBqL9aMkNE13VDXhPc4v2Na1EPQxgSnIwk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
