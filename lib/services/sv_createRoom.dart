@@ -49,6 +49,7 @@ class CreateRoom {
       'endTime': Timestamp.fromDate(endTime), // Firestore Timestamp로 변환
       'maxParticipants': maxParticipants,
       'host': host, // 방 생성자 이름 추가
+      'attendee' : 1
     };
 
     // Firestore에 방 데이터 저장
