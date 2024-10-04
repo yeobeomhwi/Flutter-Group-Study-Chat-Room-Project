@@ -1,8 +1,8 @@
+import 'package:app_team2/Screen/s_createRoom.dart';
 import 'package:flutter/material.dart';
 
 import '../components/w_topicAndCard.dart';
 import '../data/temporaryData.dart';
-
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -14,9 +14,6 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
-    final ButtonStyle style = TextButton.styleFrom(
-      foregroundColor: Theme.of(context).colorScheme.primary,
-    );
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -33,7 +30,8 @@ class _MainScreenState extends State<MainScreen> {
         child: Container(
           margin: const EdgeInsets.all(20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start, // 왼쪽 정렬
+            crossAxisAlignment:
+                CrossAxisAlignment.start, // Align items to the left
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               TopicAndCard(roomCards: roomCards, title: '최근 생긴 스터디'),
@@ -55,8 +53,13 @@ class _MainScreenState extends State<MainScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        child: Icon(Icons.add),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const CreateRoomPage()),
+          );
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }
