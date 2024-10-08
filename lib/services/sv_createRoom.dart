@@ -52,8 +52,6 @@ class CreateRoom {
       'title': title,
       'topic': topic,
       'content': content,
-      'startTime': Timestamp.fromDate(startTime), // Firestore Timestamp로 변환
-      'endTime': Timestamp.fromDate(endTime), // Firestore Timestamp로 변환
       'maxParticipants': maxParticipants,
       'host': host, // 방 생성자 이름 추가
       'attendee': attendee,
@@ -61,6 +59,9 @@ class CreateRoom {
         currentUserId: false, // 기본 예약 상태를 false로 설정
       },
       'startStudy': startStudy,
+      'startTime': startTime,
+      'endTime': endTime,
+      'createDate': DateTime.now()
     };
 
     // Firestore에 방 데이터 저장

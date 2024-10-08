@@ -42,16 +42,16 @@ class _FilteringRommScreenState extends State<FilteringRommScreen> {
                 CrossAxisAlignment.start, // Align items to the left
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              TopicAndCard(roomCards: roomCards, title: '최근 생긴 스터디'),
-              TopicAndCard(roomCards: roomCards, title: '수학 스터디'),
-              TopicAndCard(roomCards: roomCards, title: '영어 회화 스터디'),
-              TopicAndCard(roomCards: roomCards, title: '토익 스터디'),
-              TopicAndCard(roomCards: roomCards, title: '프로그래밍 스터디'),
-              TopicAndCard(roomCards: roomCards, title: '디자인 스터디'),
-              TopicAndCard(roomCards: roomCards, title: '스포츠 스터디'),
-              TopicAndCard(roomCards: roomCards, title: '과학 스터디'),
-              TopicAndCard(roomCards: roomCards, title: '독서 스터디'),
-              TopicAndCard(roomCards: roomCards, title: '자격증 스터디')
+              // TopicAndCard(roomCards: roomCards, title: '최근 생긴 스터디'),
+              // TopicAndCard(roomCards: roomCards, title: '수학 스터디'),
+              // TopicAndCard(roomCards: roomCards, title: '영어 회화 스터디'),
+              // TopicAndCard(roomCards: roomCards, title: '토익 스터디'),
+              // TopicAndCard(roomCards: roomCards, title: '프로그래밍 스터디'),
+              // TopicAndCard(roomCards: roomCards, title: '디자인 스터디'),
+              // TopicAndCard(roomCards: roomCards, title: '스포츠 스터디'),
+              // TopicAndCard(roomCards: roomCards, title: '과학 스터디'),
+              // TopicAndCard(roomCards: roomCards, title: '독서 스터디'),
+              // TopicAndCard(roomCards: roomCards, title: '자격증 스터디')
             ],
           ),
         ),

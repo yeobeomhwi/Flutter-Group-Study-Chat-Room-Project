@@ -7,8 +7,8 @@ class RoomCard extends StatefulWidget {
   final String title; // 스터디룸 제목
   final String host; // 호스트(방장) 이름
   final String content; // 스터디룸 설명
-  final String startTime; // 스터디 시작 시간
-  final String endTime; // 스터디 종료 시간
+  final DateTime startTime; // 스터디 시작 시간
+  final DateTime endTime; // 스터디 종료 시간
   final String topic; // 스터디 주제
   int attendee; // 현재 참석 인원 수
   final int maxParticipants; // 최대 참석 가능 인원 수
