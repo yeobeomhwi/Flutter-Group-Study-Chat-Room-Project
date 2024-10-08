@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
+import 'Screen/filteringRoom/s_filteringMainScreen.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -29,6 +30,6 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           useMaterial3: true,
         ),
-        home: LoginScreen());
+        home: FilteringMainScreen());
   }
 }
