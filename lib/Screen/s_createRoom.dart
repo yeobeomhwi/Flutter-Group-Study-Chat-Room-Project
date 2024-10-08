@@ -156,7 +156,9 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
               child: const Text('날짜 및 시간 선택'), // 버튼 텍스트
             ),
             Text(
-              _startDate != null ? '${_startDate!.toLocal().toString().split(' ')[0]} ${_formatTime(_startTime)}' : '선택된 날짜 및 시간 없음', // 선택된 날짜 및 시간 표시
+              _startDate != null
+                  ? '${_startDate!.toLocal().toString().split(' ')[0]} ${_formatTime(_startTime)}'
+                  : '선택된 날짜 및 시간 없음', // 선택된 날짜 및 시간 표시
             ),
             const SizedBox(height: 20),
             const subheading(title: '종료 시간'), // 종료 시간 서브헤딩
@@ -168,7 +170,9 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
               child: const Text('날짜 및 시간 선택'), // 버튼 텍스트
             ),
             Text(
-              _endDate != null ? '${_endDate!.toLocal().toString().split(' ')[0]} ${_formatTime(_endTime)}' : '선택된 날짜 및 시간 없음', // 선택된 날짜 및 시간 표시
+              _endDate != null
+                  ? '${_endDate!.toLocal().toString().split(' ')[0]} ${_formatTime(_endTime)}'
+                  : '선택된 날짜 및 시간 없음', // 선택된 날짜 및 시간 표시
             ),
             const SizedBox(height: 20),
             const subheading(title: '최대 인원'), // 최대 인원 서브헤딩
@@ -180,7 +184,8 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () async {
-                int? maxParticipants = int.tryParse(_maxParticipantsController.text); // Convert max participants to int
+                int? maxParticipants = int.tryParse(_maxParticipantsController
+                    .text); // Convert max participants to int
 
                 if (maxParticipants != null &&
                     _startDate != null &&
@@ -219,7 +224,8 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
 
                     // Navigate to MainScreen
                     Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (context) => MainScreen()),
+                      MaterialPageRoute(
+                          builder: (context) => const MainScreen()),
                     );
                   } catch (e) {
                     // Error message
