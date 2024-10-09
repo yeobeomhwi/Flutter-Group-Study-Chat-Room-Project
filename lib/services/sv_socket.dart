@@ -1,21 +1,25 @@
 import 'dart:async';
 
 import 'package:app_team2/data/message.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
-class SocketManager {
-  static final SocketManager instance = SocketManager();
+class SocketService {
+  static final SocketService instance = SocketService();
   StreamController<List<Message>> chatController =
       StreamController<List<Message>>();
   List<Message> allChats = [];
 
   late IO.Socket socket;
 
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   // Socket 연결
   Future initializeSocketConnection() async {
     socket = IO.io(
-        'http://10.0.2.2:3000',
+        'http://localhost:3000',
         IO.OptionBuilder()
             .setTransports(['websocket'])
             .disableAutoConnect()
@@ -33,13 +37,30 @@ class SocketManager {
   }
 
   void listen() {
-    socket.on('message', (data) {
-      print(data['content']);
-      allChats.add(Message(message_text: data['content']));
+    socket.on('message', (message) {
+      print('$message');
+      // allChats.add(Message(message_text: data['content']));
     });
   }
 
-  void sendMessage(String content) {
-    socket.emit('message', {'sender': 'FlutterUser', 'content': content});
+  void sendMessage(String roomId, String message) async {
+    CollectionReference chatsSnapshot =
+        FirebaseFirestore.instance.collection('study_rooms');
+    await chatsSnapshot.doc(roomId).update({
+      'messages': FieldValue.arrayUnion([
+        Message(
+                room_id: roomId,
+                user_id: FirebaseAuth.instance.currentUser!.uid,
+                message_text: message,
+                sent_at: DateTime.now())
+            .toMap()
+      ]),
+    });
+    socket.emit('message', {
+      'room_id': roomId,
+      'user_id': FirebaseAuth.instance.currentUser!.uid,
+      'message_text': message,
+      'sent_at': DateTime.now().toString(),
+    });
   }
 }

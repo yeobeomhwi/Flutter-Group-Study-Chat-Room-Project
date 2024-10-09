@@ -1,11 +1,15 @@
 import 'package:app_team2/components/w_chatDrawer.dart';
 import 'package:app_team2/components/w_messageCard.dart';
 import 'package:app_team2/services/sv_socket.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  const ChatScreen({super.key, required this.roomId});
+
+  final roomId;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -14,27 +18,13 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   String message = '';
   final chatController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    SocketManager.instance.initializeSocketConnection();
-    SocketManager.instance.listen();
-    fetchUsers();
-  }
-
-  Future<void> fetchUsers() async {
-    final response = await http.get(Uri.parse('http://10.0.2.2:3000/chat'));
-    if (response.statusCode == 200) {
-      print(response.body);
-      setState(() {
-        message = response.body;
-      });
-    } else {
-      setState(() {
-        message = 'Failed to load users';
-      });
-    }
+    SocketService.instance.initializeSocketConnection();
+    SocketService.instance.listen();
   }
 
   @override
@@ -52,32 +42,43 @@ class _ChatScreenState extends State<ChatScreen> {
           children: <Widget>[
             // 나중에 리스트 뷰로 작성할 것
             Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
+              child: Padding(
                   padding: const EdgeInsets.all(10.0),
-                  child: Column(
-                    children: [
-                      Text(message),
-                      const MessageCard(
-                          type: Message.SEND,
-                          message: "안녕하세요",
-                          chatTime: "2:04"),
-                      const MessageCard(
-                          type: Message.SEND,
-                          message: "안녕하세요",
-                          chatTime: "2:04"),
-                      const MessageCard(
-                          type: Message.RECEIVE,
-                          message: "안녕하세요",
-                          chatTime: "2:04"),
-                      const MessageCard(
-                          type: Message.RECEIVE,
-                          message: "안녕하세요",
-                          chatTime: "2:04"),
-                    ],
-                  ),
-                ),
-              ),
+                  child: StreamBuilder(
+                      stream: FirebaseFirestore.instance
+                          .collection('study_rooms')
+                          .doc(widget.roomId)
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (_scrollController.hasClients) {
+                            _scrollController.jumpTo(
+                                _scrollController.position.maxScrollExtent);
+                          }
+                        });
+
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
+                        return ListView.builder(
+                            controller: _scrollController,
+                            itemCount: snapshot.data!['messages'].length,
+                            itemBuilder: (context, index) {
+                              return MessageCard(
+                                  type: snapshot.data!['messages'][index]
+                                              ['user_id'] ==
+                                          FirebaseAuth.instance.currentUser!.uid
+                                      ? Message.SEND
+                                      : Message.RECEIVE,
+                                  message: snapshot.data!['messages'][index]
+                                      ['message_text'],
+                                  chatTime: snapshot.data!['messages'][index]
+                                          ['sent_at']
+                                      .toDate());
+                            });
+                      })),
             ),
             Container(
                 color: const Color(0xffF3EDF7),
@@ -95,8 +96,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       height: MediaQuery.of(context).size.height * 0.06,
                       child: TextField(
                         controller: chatController,
-                        onSubmitted: (text) {
-                          SocketManager.instance.sendMessage(text);
+                        onSubmitted: (mesage) {
+                          SocketService.instance
+                              .sendMessage(widget.roomId, mesage);
+
                           chatController.clear();
                         },
                         decoration: const InputDecoration(

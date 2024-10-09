@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 enum Message { SEND, RECEIVE }
 
@@ -12,7 +13,7 @@ class MessageCard extends StatelessWidget {
 
   final Message type;
   final String message;
-  final String chatTime;
+  final DateTime chatTime;
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +23,7 @@ class MessageCard extends StatelessWidget {
   }
 }
 
-Widget sendMessage(BuildContext context, String message, String chatTime) {
+Widget sendMessage(BuildContext context, String message, DateTime chatTime) {
   return Column(
     children: [
       SizedBox(
@@ -31,7 +32,7 @@ Widget sendMessage(BuildContext context, String message, String chatTime) {
           mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text(chatTime), // 메세지 입력 시간
+            Text(DateFormat('hh:mm').format(chatTime)), // 메세지 입력 시간
             SizedBox(width: MediaQuery.of(context).size.width * 0.02),
             Container(
               constraints: BoxConstraints(
@@ -75,7 +76,7 @@ Widget sendMessage(BuildContext context, String message, String chatTime) {
   );
 }
 
-Widget receiveMessage(BuildContext context, String message, String chatTime) {
+Widget receiveMessage(BuildContext context, String message, DateTime chatTime) {
   return Column(
     children: [
       SizedBox(
@@ -120,7 +121,7 @@ Widget receiveMessage(BuildContext context, String message, String chatTime) {
             ),
 
             SizedBox(width: MediaQuery.of(context).size.width * 0.02),
-            Text(chatTime), // 메세지 입력 시간
+            Text(chatTime.toString()), // 메세지 입력 시간
           ],
         ),
       ),
