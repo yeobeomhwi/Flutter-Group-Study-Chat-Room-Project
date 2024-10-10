@@ -1,11 +1,12 @@
 import 'package:app_team2/Screen/s_loginScreen.dart';
+import 'package:app_team2/services/sv_socket.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 import 'firebase_options.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
   Firebase.initializeApp(
@@ -17,6 +18,7 @@ void main() {
     // Firebase 초기화 실패 시 에러 처리
     print("Firebase 초기화 실패: $error");
   });
+  SocketService.instance.initializeSocketConnection();
 }
 
 class MyApp extends StatelessWidget {

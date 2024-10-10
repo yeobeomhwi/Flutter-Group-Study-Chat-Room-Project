@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app_team2/Screen/filteringRoom/s_filteringMainScreen.dart';
+import 'package:app_team2/Screen/s_chatScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -182,21 +183,30 @@ class _MainScreenState extends State<MainScreen> {
                           final userReservation =
                               reservations[currentUserId] ?? false;
 
-                          return RoomCard(
-                            title: room['title'],
-                            host: room['host'],
-                            content: room['content'],
-                            startTime: room['startTime'],
-                            endTime: room['endTime'],
-                            attendee: room['attendee'] ?? 0,
-                            maxParticipants: room['maxParticipants'],
-                            topic: room['topic'],
-                            imageUrl: 'https://picsum.photos/200/200',
-                            // Temporary image URL
-                            reservations: userReservation,
-                            startStudy: room['startStudy'],
-                            currentUserId: currentUserId,
-                            docId: room['docId'],
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => ChatScreen(
+                                          room: room, roomId: room['docId'])));
+                            },
+                            child: RoomCard(
+                              title: room['title'],
+                              host: room['host'],
+                              content: room['content'],
+                              startTime: room['startTime'],
+                              endTime: room['endTime'],
+                              attendee: room['attendee'] ?? 0,
+                              maxParticipants: room['maxParticipants'],
+                              topic: room['topic'],
+                              imageUrl: 'https://picsum.photos/200/200',
+                              // Temporary image URL
+                              reservations: userReservation,
+                              startStudy: room['startStudy'],
+                              currentUserId: currentUserId,
+                              docId: room['docId'],
+                            ),
                           );
                         },
                       ),

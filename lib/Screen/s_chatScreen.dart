@@ -23,8 +23,6 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    // Socket 연결
-    SocketService.instance.initializeSocketConnection();
     // 메세지 수신
     SocketService.instance.listen();
   }

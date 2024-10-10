@@ -23,6 +23,14 @@ class SocketService {
             .disableAutoConnect()
             .build());
 
+    socket.onConnect((_) {
+      print('Connected to socket server');
+    });
+
+    socket.onDisconnect((_) {
+      print('Disconnected from socket server');
+    });
+
     socket.connect();
   }
 
