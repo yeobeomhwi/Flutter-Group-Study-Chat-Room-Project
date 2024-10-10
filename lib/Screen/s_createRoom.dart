@@ -2,9 +2,6 @@ import 'package:app_team2/Screen/s_mainScreen.dart';
 import 'package:app_team2/components/w_subheading.dart';
 import 'package:app_team2/services/sv_createRoom.dart';
 import 'package:flutter/material.dart';
-import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
-
 
 class CreateRoomPage extends StatefulWidget {
   const CreateRoomPage({super.key});
@@ -24,8 +21,7 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
   final List<String> _topics = [
     // 주제 리스트
     '수학',
-    '영어 회화',
-    '토익',
+    '영어',
     '프로그래밍',
     '디자인',
     '스포츠',
@@ -35,24 +31,12 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
   ];
 
   // 시작 시간 변수
-  tz.TZDateTime? _startDate;
+  DateTime? _startDate;
   TimeOfDay? _startTime;
 
   // 종료 시간 변수
-  tz.TZDateTime? _endDate;
+  DateTime? _endDate;
   TimeOfDay? _endTime;
-
-  @override
-  void initState() {
-    super.initState();
-    tz.initializeTimeZones(); // 시간대 초기화
-  }
-
-  // TZDateTime을 포맷하는 헬퍼 메서드
-  String _formatTZDate(tz.TZDateTime? date) {
-    if (date == null) return '선택된 날짜 및 시간 없음'; // 날짜가 없을 경우 메시지 반환
-    return date.toLocal().toString().split(' ')[0]; // 날짜 포맷
-  }
 
   // TimeOfDay을 포맷하는 헬퍼 메서드
   String _formatTime(TimeOfDay? time) {
@@ -78,7 +62,13 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
 
       if (pickedTime != null) {
         setState(() {
-          _startDate = tz.TZDateTime.from(pickedDate, tz.local); // 시작 날짜 설정
+          _startDate = DateTime(
+            pickedDate.year,
+            pickedDate.month,
+            pickedDate.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          ); // 시작 날짜 및 시간을 설정
           _startTime = pickedTime; // 시작 시간 설정
         });
       }
@@ -103,7 +93,13 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
 
       if (pickedTime != null) {
         setState(() {
-          _endDate = tz.TZDateTime.from(pickedDate, tz.local); // 종료 날짜 설정
+          _endDate = DateTime(
+            pickedDate.year,
+            pickedDate.month,
+            pickedDate.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          ); // 종료 날짜 및 시간을 설정
           _endTime = pickedTime; // 종료 시간 설정
         });
       }
@@ -153,24 +149,30 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
             const SizedBox(height: 10),
             const subheading(title: '시작 시간'), // 시작 시간 서브헤딩
             ElevatedButton(
-                onPressed: _selectStartDateTime, // 시작 시간 선택 버튼
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 36),
-                ),
-                child: const Text('날짜 및 시간 선택')), // 버튼 텍스트
+              onPressed: _selectStartDateTime, // 시작 시간 선택 버튼
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 36),
+              ),
+              child: const Text('날짜 및 시간 선택'), // 버튼 텍스트
+            ),
             Text(
-              '${_formatTZDate(_startDate)} ${_formatTime(_startTime)}', // 선택된 날짜 및 시간 표시
+              _startDate != null
+                  ? '${_startDate!.toLocal().toString().split(' ')[0]} ${_formatTime(_startTime)}'
+                  : '선택된 날짜 및 시간 없음', // 선택된 날짜 및 시간 표시
             ),
             const SizedBox(height: 20),
             const subheading(title: '종료 시간'), // 종료 시간 서브헤딩
             ElevatedButton(
-                onPressed: _selectEndDateTime, // 종료 시간 선택 버튼
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 36),
-                ),
-                child: const Text('날짜 및 시간 선택')), // 버튼 텍스트
+              onPressed: _selectEndDateTime, // 종료 시간 선택 버튼
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 36),
+              ),
+              child: const Text('날짜 및 시간 선택'), // 버튼 텍스트
+            ),
             Text(
-              '${_formatTZDate(_endDate)} ${_formatTime(_endTime)}', // 선택된 날짜 및 시간 표시
+              _endDate != null
+                  ? '${_endDate!.toLocal().toString().split(' ')[0]} ${_formatTime(_endTime)}'
+                  : '선택된 날짜 및 시간 없음', // 선택된 날짜 및 시간 표시
             ),
             const SizedBox(height: 20),
             const subheading(title: '최대 인원'), // 최대 인원 서브헤딩
@@ -182,100 +184,67 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () async {
-                print(
-                    'Start Date: $_startDate, Start Time: $_startTime'); // 선택된 시작 시간 로그
-                print(
-                    'End Date: $_endDate, End Time: $_endTime'); // 선택된 종료 시간 로그
-                int? maxParticipants = int.tryParse(
-                    _maxParticipantsController.text); // 최대 인원 숫자로 변환
+                int? maxParticipants = int.tryParse(_maxParticipantsController
+                    .text); // Convert max participants to int
+
                 if (maxParticipants != null &&
                     _startDate != null &&
-                    _endDate != null &&
-                    _startTime != null &&
-                    _endTime != null) {
-                  // 모든 시간 변수가 유효한지 확인
+                    _endDate != null) {
+                  // Check if both start and end dates are selected
                   try {
-                    // 방 생성
+                    // Create room
                     await _createRoom.createStudyRoom(
                       title: _titleController.text,
-                      // 방 제목
                       topic: _selectedTopic ?? '',
-                      // 주제가 선택되지 않았다면 빈 문자열
                       content: _contentController.text,
-                      // 방 설명
-                      startTime: tz.TZDateTime(
-                              tz.local,
-                              _startDate!.year,
-                              _startDate!.month,
-                              _startDate!.day,
-                              _startTime!.hour,
-                              _startTime!.minute)
-                          .toDate(),
-                      // DateTime으로 변환
-                      endTime: tz.TZDateTime(
-                              tz.local,
-                              _endDate!.year,
-                              _endDate!.month,
-                              _endDate!.day,
-                              _endTime!.hour,
-                              _endTime!.minute)
-                          .toDate(),
-                      // DateTime으로 변환
+                      startTime: _startDate!, // Pass the DateTime directly
+                      endTime: _endDate!, // Pass the DateTime directly
                       maxParticipants: maxParticipants,
                       attendee: 1,
                       reservations: {},
-                      startStudy: false, // 최대 인원
+                      startStudy: false, // Additional parameters
                     );
 
-                    // 방 생성 완료 후 알림
+                    // Success message
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('방이 생성되었습니다!')), // 방 생성 성공 메시지
+                      const SnackBar(content: Text('방이 생성되었습니다!')),
                     );
 
-                    // 입력 필드 초기화
-                    _titleController.clear(); // 제목 필드 초기화
-                    _contentController.clear(); // 설명 필드 초기화
-                    _maxParticipantsController.clear(); // 최대 인원 필드 초기화
+                    // Clear input fields
+                    _titleController.clear();
+                    _contentController.clear();
+                    _maxParticipantsController.clear();
                     setState(() {
-                      _selectedTopic = null; // 선택된 주제 초기화
-                      _startDate = null; // 시작 날짜 초기화
-                      _endDate = null; // 종료 날짜 초기화
-                      _startTime = null; // 시작 시간 초기화
-                      _endTime = null; // 종료 시간 초기화
+                      _selectedTopic = null;
+                      _startDate = null;
+                      _endDate = null;
+                      _startTime = null;
+                      _endTime = null;
                     });
 
-                    // MainScreen으로 이동
+                    // Navigate to MainScreen
                     Navigator.of(context).pushReplacement(
                       MaterialPageRoute(
-                          builder: (context) =>
-                              MainScreen()), // MainScreen으로 이동
+                          builder: (context) => const MainScreen()),
                     );
                   } catch (e) {
-                    // 오류 처리
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('방 생성 실패: $e')), // 방 생성 실패 메시지
+                      SnackBar(content: Text('방 생성 중 오류 발생: $e')),
                     );
+                    print(e);
                   }
                 } else {
-                  // 입력값이 유효하지 않을 경우 경고
+                  // Validation message
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('모든 필드를 올바르게 입력해주세요.')), // 입력 오류 메시지
+                    const SnackBar(content: Text('모든 필드를 입력해주세요.')),
                   );
                 }
               },
-              child: const Text('방 생성'), // 버튼 텍스트
+              child: const Text('방 만들기'), // 버튼 텍스트
             ),
           ],
         ),
       ),
     );
-  }
-}
-
-extension on tz.TZDateTime {
-  DateTime toDate() {
-    return DateTime(year, month, day, hour, minute);
   }
 }

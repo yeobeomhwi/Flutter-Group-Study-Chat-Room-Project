@@ -52,8 +52,6 @@ class CreateRoom {
       'title': title,
       'topic': topic,
       'content': content,
-      'startTime': Timestamp.fromDate(startTime), // Firestore Timestamp로 변환
-      'endTime': Timestamp.fromDate(endTime), // Firestore Timestamp로 변환
       'maxParticipants': maxParticipants,
       'host': host, // 방 생성자 이름 추가
       'attendee': attendee,
@@ -61,6 +59,9 @@ class CreateRoom {
         currentUserId: false, // 기본 예약 상태를 false로 설정
       },
       'startStudy': startStudy,
+      'startTime': startTime,
+      'endTime': endTime,
+      'createDate': DateTime.now()
     };
 
     // Firestore에 방 데이터 저장
@@ -71,6 +72,24 @@ class CreateRoom {
           .collection('study_rooms')
           .doc(newId.toString())
           .set(roomData);
+
+      // 사용자의 이름을 chatData에 넣기
+      String userName = await getUserName(); // 사용자 이름 가져오기
+
+      // 방 생성 후 채팅 데이터도 동일한 ID로 저장
+      List<Map<String, dynamic>> chatData = [
+        {
+          'user': userName,
+          'message': '스터디를 생성하였습니다.', // 초기 메시지
+          'createDate': DateTime.now(),
+        },
+      ];
+      await _firestore
+          .collection('chats')
+          .doc(newId.toString()) // 방 ID와 동일한 문서 ID 사용
+          .set({
+        'messages': chatData, // 메시지를 배열로 저장
+      });
     } catch (e) {
       throw Exception('방 생성 실패: ${e.toString()}');
     }
