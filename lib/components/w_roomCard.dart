@@ -132,8 +132,33 @@ class _RoomCardState extends State<RoomCard> {
 
   // 예약 버튼 또는 참여 버튼 생성 함수
   Widget buildButton() {
+    // 인원이 마감된 경우
+    if (widget.reservations.length >= widget.maxParticipants) {
+      // 현재 사용자가 이미 예약되어 있는 경우
+      if (widget.reservations.contains(widget.currentUserId)) {
+        return FilledButton(
+          onPressed: () {
+            widget.onCardTap(); // 카드 클릭 시 호출
+            joinRoom(widget.docId); // 참여하기
+          },
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 36), // 버튼 최소 크기 설정
+          ),
+          child: const Text('참여 하기'), // 버튼 텍스트
+        );
+      } else {
+        return OutlinedButton(
+          onPressed: null, // 클릭 불가능하도록 설정
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 36), // 버튼 최소 크기 설정
+          ),
+          child: const Text('인원 마감'), // 버튼 텍스트
+        );
+      }
+    }
+
+    // 스터디가 시작된 경우
     if (widget.startStudy) {
-      // 스터디가 시작되었으면 '참여하기' 버튼 생성
       return FilledButton(
         onPressed: () {
           widget.onCardTap(); // 카드 클릭 시 호출
@@ -145,8 +170,9 @@ class _RoomCardState extends State<RoomCard> {
         child: const Text('참여 하기'), // 버튼 텍스트
       );
     }
+
     // 스터디가 시작되지 않았다면 예약 버튼 또는 예약 취소 버튼 생성
-    return widget.reservations.contains(currentUserId)
+    return widget.reservations.contains(widget.currentUserId)
         ? OutlinedButton(
       onPressed: () => updateReservationStatus(widget.docId), // 예약 취소
       style: OutlinedButton.styleFrom(
