@@ -121,7 +121,7 @@ Widget receiveMessage(BuildContext context, String message, DateTime chatTime) {
             ),
 
             SizedBox(width: MediaQuery.of(context).size.width * 0.02),
-            Text(chatTime.toString()), // 메세지 입력 시간
+            Text(DateFormat('hh:mm').format(chatTime)), // 메세지 입력 시간
           ],
         ),
       ),

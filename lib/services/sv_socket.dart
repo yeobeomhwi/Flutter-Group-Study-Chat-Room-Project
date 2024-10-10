@@ -14,20 +14,16 @@ class SocketService {
 
   late IO.Socket socket;
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
   // Socket 연결
   Future initializeSocketConnection() async {
     socket = IO.io(
-        'http://localhost:3000',
+        'http://10.0.2.2:3000',
         IO.OptionBuilder()
             .setTransports(['websocket'])
             .disableAutoConnect()
             .build());
 
     socket.connect();
-
-    socket.on('connet_error', (error) => print('Socket Connet Error: $error'));
   }
 
   // Socket 연결 해제
@@ -45,14 +41,13 @@ class SocketService {
 
   void sendMessage(String roomId, String message) async {
     CollectionReference chatsSnapshot =
-        FirebaseFirestore.instance.collection('study_rooms');
+        FirebaseFirestore.instance.collection('chats');
     await chatsSnapshot.doc(roomId).update({
       'messages': FieldValue.arrayUnion([
         Message(
-                room_id: roomId,
-                user_id: FirebaseAuth.instance.currentUser!.uid,
-                message_text: message,
-                sent_at: DateTime.now())
+                user: FirebaseAuth.instance.currentUser!.uid,
+                message: message,
+                createDate: DateTime.now())
             .toMap()
       ]),
     });

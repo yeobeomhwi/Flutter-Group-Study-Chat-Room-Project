@@ -1,11 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class ChatDrawer extends StatelessWidget {
-  const ChatDrawer(
-      {super.key, required this.totalPeople, required this.currentPeople});
+  const ChatDrawer({super.key, required this.room});
 
-  final int totalPeople;
-  final int currentPeople;
+  final room;
 
   @override
   Widget build(BuildContext context) {
@@ -14,36 +13,53 @@ class ChatDrawer extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 30),
         child: Column(children: [
           const Text('참여 인원', style: TextStyle(fontSize: 32)),
-          Text('[$currentPeople / $totalPeople]',
+          Text('[${room['attendee']} / ${room['maxParticipants']}]',
               style: const TextStyle(fontSize: 28)),
           Expanded(
             child: ListView.builder(
               scrollDirection: Axis.vertical,
-              itemCount: 3,
+              itemCount: room['reservations'].keys.length,
               itemBuilder: (context, index) {
-                return SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.1,
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: MediaQuery.of(context).size.width * 0.1,
-                            height: MediaQuery.of(context).size.width * 0.1,
-                            decoration: const BoxDecoration(
-                                color: Colors.grey, shape: BoxShape.circle),
-                          ),
-                          SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.1),
-                          const Text('닉네임',
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold))
-                        ],
-                      ),
-                      const Divider()
-                    ],
-                  ),
-                );
+                return StreamBuilder<DocumentSnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(room['reservations'].keys.toList()[index])
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return Container();
+                      }
+                      var userData =
+                          snapshot.data!.data() as Map<String, dynamic>;
+                      return SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.1,
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.1,
+                                  height:
+                                      MediaQuery.of(context).size.width * 0.1,
+                                  decoration: const BoxDecoration(
+                                      color: Colors.grey,
+                                      shape: BoxShape.circle),
+                                ),
+                                SizedBox(
+                                    width: MediaQuery.of(context).size.width *
+                                        0.1),
+                                Text('${userData['name']}',
+                                    style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold))
+                              ],
+                            ),
+                            const Divider()
+                          ],
+                        ),
+                      );
+                    });
               },
             ),
           )

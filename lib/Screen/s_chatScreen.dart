@@ -3,12 +3,12 @@ import 'package:app_team2/components/w_messageCard.dart';
 import 'package:app_team2/services/sv_socket.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key, required this.roomId});
+  const ChatScreen({super.key, required this.room, required this.roomId});
 
+  final room;
   final roomId;
 
   @override
@@ -23,7 +23,9 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    // Socket 연결
     SocketService.instance.initializeSocketConnection();
+    // 메세지 수신
     SocketService.instance.listen();
   }
 
@@ -34,9 +36,11 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: Colors.transparent,
         leading:
             GestureDetector(onTap: () {}, child: const Icon(Icons.arrow_back)),
-        title: const Text('방 제목 (현재 인원 / 최대 인원)'),
+        centerTitle: true,
+        title: Text(
+            '방 제목 (${widget.room['attendee']} / ${widget.room['maxParticipants']})'),
       ),
-      endDrawer: const ChatDrawer(totalPeople: 10, currentPeople: 5),
+      endDrawer: ChatDrawer(room: widget.room),
       body: SafeArea(
         child: Column(
           children: <Widget>[
@@ -46,7 +50,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   padding: const EdgeInsets.all(10.0),
                   child: StreamBuilder(
                       stream: FirebaseFirestore.instance
-                          .collection('study_rooms')
+                          .collection('chats')
                           .doc(widget.roomId)
                           .snapshots(),
                       builder: (context, snapshot) {
@@ -68,14 +72,14 @@ class _ChatScreenState extends State<ChatScreen> {
                             itemBuilder: (context, index) {
                               return MessageCard(
                                   type: snapshot.data!['messages'][index]
-                                              ['user_id'] ==
+                                              ['user'] ==
                                           FirebaseAuth.instance.currentUser!.uid
                                       ? Message.SEND
                                       : Message.RECEIVE,
                                   message: snapshot.data!['messages'][index]
-                                      ['message_text'],
+                                      ['message'],
                                   chatTime: snapshot.data!['messages'][index]
-                                          ['sent_at']
+                                          ['createDate']
                                       .toDate());
                             });
                       })),

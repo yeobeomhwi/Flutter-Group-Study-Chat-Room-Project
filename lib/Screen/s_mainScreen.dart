@@ -106,8 +106,8 @@ class _MainScreenState extends State<MainScreen> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) =>
-                                    ChatScreen(roomId: room['docId'])));
+                                builder: (context) => ChatScreen(
+                                    room: room, roomId: room['docId'])));
                       },
                       child: RoomCard(
                         title: room['title'],
