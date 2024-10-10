@@ -1,6 +1,6 @@
 import 'package:app_team2/components/w_chatDrawer.dart';
 import 'package:app_team2/components/w_messageCard.dart';
-import 'package:app_team2/services/sv_socket.dart';
+import 'package:app_team2/services/sv_chat.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -21,19 +21,10 @@ class _ChatScreenState extends State<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
 
   @override
-  void initState() {
-    super.initState();
-    // 메세지 수신
-    SocketService.instance.listen();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        leading:
-            GestureDetector(onTap: () {}, child: const Icon(Icons.arrow_back)),
         centerTitle: true,
         title: Text(
             '방 제목 (${widget.room['attendee']} / ${widget.room['maxParticipants']})'),
@@ -70,14 +61,14 @@ class _ChatScreenState extends State<ChatScreen> {
                             itemBuilder: (context, index) {
                               return MessageCard(
                                   type: snapshot.data!['messages'][index]
-                                              ['user'] ==
+                                              ['user_id'] ==
                                           FirebaseAuth.instance.currentUser!.uid
                                       ? Message.SEND
                                       : Message.RECEIVE,
                                   message: snapshot.data!['messages'][index]
-                                      ['message'],
+                                      ['message_text'],
                                   chatTime: snapshot.data!['messages'][index]
-                                          ['createDate']
+                                          ['sent_at']
                                       .toDate());
                             });
                       })),
@@ -99,8 +90,8 @@ class _ChatScreenState extends State<ChatScreen> {
                       child: TextField(
                         controller: chatController,
                         onSubmitted: (mesage) {
-                          SocketService.instance
-                              .sendMessage(widget.roomId, mesage);
+                          ChatService.instance
+                              .sendMessage(widget.roomId, message);
 
                           chatController.clear();
                         },
