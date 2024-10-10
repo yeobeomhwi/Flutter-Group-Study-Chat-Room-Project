@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../components/w_roomCard.dart';
+import '../s_chatScreen.dart';
 
 class EngScreen extends StatefulWidget {
   const EngScreen({super.key});
@@ -70,7 +71,7 @@ class _EngScreenState extends State<EngScreen> {
           final startTime = (data['startTime'] as Timestamp).toDate();
           final endTime = (data['endTime'] as Timestamp).toDate();
           final createDate =
-          (data['createDate'] as Timestamp).toDate(); // createDate 가져오기
+              (data['createDate'] as Timestamp).toDate(); // createDate 가져오기
 
           return {
             'docId': doc.id,
@@ -97,7 +98,7 @@ class _EngScreenState extends State<EngScreen> {
   Future<void> updateReservationStatus(String docId) async {
     try {
       final docSnapshot =
-      await _firestore.collection('study_rooms').doc(docId).get();
+          await _firestore.collection('study_rooms').doc(docId).get();
       if (docSnapshot.exists) {
         final reservations =
             docSnapshot.data()?['reservations'] as Map<String, dynamic>? ?? {};
@@ -159,42 +160,49 @@ class _EngScreenState extends State<EngScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator()) // Loading state
           : _rooms.isEmpty
-          ? const Center(child: Text('방이 없습니다.')) // No rooms
-          : Column(
-        children: [
-          const Text('최신순 정렬'),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _rooms.length,
-              itemBuilder: (context, index) {
-                final room = _rooms[index];
-                final reservations =
-                    room['reservations'] as Map<String, dynamic>? ??
-                        {};
-                final userReservation =
-                    reservations[currentUserId] ?? false;
+              ? const Center(child: Text('방이 없습니다.')) // No rooms
+              : Column(
+                  children: [
+                    const Text('최신순 정렬'),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: _rooms.length,
+                        itemBuilder: (context, index) {
+                          final room = _rooms[index];
+                          final reservations =
+                              room['reservations'] as Map<String, dynamic>? ??
+                                  {};
+                          final userReservation =
+                              reservations[currentUserId] ?? false;
 
-                return RoomCard(
-                  title: room['title'],
-                  host: room['host'],
-                  content: room['content'],
-                  startTime: room['startTime'],
-                  endTime: room['endTime'],
-                  attendee: room['attendee'] ?? 0,
-                  maxParticipants: room['maxParticipants'],
-                  topic: room['topic'],
-                  imageUrl: 'https://picsum.photos/200/200',
-                  // Temporary image URL
-                  reservations: userReservation,
-                  startStudy: room['startStudy'],
-                  currentUserId: currentUserId,
-                  docId: room['docId'],
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+                          return RoomCard(
+                            title: room['title'],
+                            host: room['host'],
+                            content: room['content'],
+                            startTime: room['startTime'],
+                            endTime: room['endTime'],
+                            attendee: room['attendee'] ?? 0,
+                            maxParticipants: room['maxParticipants'],
+                            topic: room['topic'],
+                            imageUrl: 'https://picsum.photos/200/200',
+                            // Temporary image URL
+                            reservations: userReservation,
+                            startStudy: room['startStudy'],
+                            currentUserId: currentUserId,
+                            docId: room['docId'],
+                            onCardTap: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => ChatScreen(
+                                          room: room, roomId: room['docId'])));
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
       bottomNavigationBar: BottomNavigationBar(
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "홈"),

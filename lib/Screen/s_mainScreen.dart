@@ -183,30 +183,28 @@ class _MainScreenState extends State<MainScreen> {
                           final userReservation =
                               reservations[currentUserId] ?? false;
 
-                          return GestureDetector(
-                            onTap: () {
+                          return RoomCard(
+                            title: room['title'],
+                            host: room['host'],
+                            content: room['content'],
+                            startTime: room['startTime'],
+                            endTime: room['endTime'],
+                            attendee: room['attendee'] ?? 0,
+                            maxParticipants: room['maxParticipants'],
+                            topic: room['topic'],
+                            imageUrl: 'https://picsum.photos/200/200',
+                            // Temporary image URL
+                            reservations: userReservation,
+                            startStudy: room['startStudy'],
+                            currentUserId: currentUserId,
+                            docId: room['docId'],
+                            onCardTap: () {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => ChatScreen(
                                           room: room, roomId: room['docId'])));
                             },
-                            child: RoomCard(
-                              title: room['title'],
-                              host: room['host'],
-                              content: room['content'],
-                              startTime: room['startTime'],
-                              endTime: room['endTime'],
-                              attendee: room['attendee'] ?? 0,
-                              maxParticipants: room['maxParticipants'],
-                              topic: room['topic'],
-                              imageUrl: 'https://picsum.photos/200/200',
-                              // Temporary image URL
-                              reservations: userReservation,
-                              startStudy: room['startStudy'],
-                              currentUserId: currentUserId,
-                              docId: room['docId'],
-                            ),
                           );
                         },
                       ),

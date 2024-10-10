@@ -8,17 +8,107 @@ import 'package:flutter/material.dart';
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key, required this.room, required this.roomId});
 
-  final room;
-  final roomId;
+  final Map<String, dynamic> room;
+  final String roomId;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  String message = '';
-  final chatController = TextEditingController();
+  final TextEditingController chatController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+
+  // 메시지 전송 함수
+  void _sendMessage() {
+    if (chatController.text.isNotEmpty) {
+      ChatService.instance.sendMessage(widget.roomId, chatController.text);
+      chatController.clear();
+    }
+  }
+
+  // 스크롤을 맨 아래로 이동
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      }
+    });
+  }
+
+  // 채팅 메시지 스트림을 렌더링하는 메서드
+  Widget _buildMessageList() {
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('chats')
+          .doc(widget.roomId)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (!snapshot.hasData || snapshot.data == null) {
+          return const Center(child: Text("No messages yet."));
+        }
+
+        // 스크롤을 맨 아래로 이동
+        _scrollToBottom();
+
+        var messages = snapshot.data!['messages'] as List<dynamic>;
+
+        return ListView.builder(
+          controller: _scrollController,
+          itemCount: messages.length,
+          itemBuilder: (context, index) {
+            final messageData = messages[index];
+            final bool isSendByCurrentUser =
+                messageData['user_id'] == FirebaseAuth.instance.currentUser!.uid;
+
+            return MessageCard(
+              type: isSendByCurrentUser ? Message.SEND : Message.RECEIVE,
+              message: messageData['message_text'],
+              chatTime: messageData['sent_at'].toDate(),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // 채팅 입력 필드와 보내기 버튼을 렌더링하는 메서드
+  Widget _buildInputField() {
+    return Container(
+      color: const Color(0xffF3EDF7),
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Row(
+        children: [
+          Icon(
+            Icons.add_circle,
+            size: MediaQuery.of(context).size.width * 0.08,
+          ),
+          Expanded(
+            child: TextField(
+              controller: chatController,
+              onSubmitted: (_) => _sendMessage(),
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                ),
+                filled: true,
+                fillColor: Colors.white,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.send),
+            onPressed: _sendMessage,
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,86 +117,20 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: Colors.transparent,
         centerTitle: true,
         title: Text(
-            '방 제목 (${widget.room['attendee']} / ${widget.room['maxParticipants']})'),
+          '${widget.room['title']} (${widget.room['attendee']} / ${widget.room['maxParticipants']})',
+        ),
       ),
       endDrawer: ChatDrawer(room: widget.room),
       body: SafeArea(
         child: Column(
           children: <Widget>[
-            // 나중에 리스트 뷰로 작성할 것
             Expanded(
               child: Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: StreamBuilder(
-                      stream: FirebaseFirestore.instance
-                          .collection('chats')
-                          .doc(widget.roomId)
-                          .snapshots(),
-                      builder: (context, snapshot) {
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (_scrollController.hasClients) {
-                            _scrollController.jumpTo(
-                                _scrollController.position.maxScrollExtent);
-                          }
-                        });
-
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                              child: CircularProgressIndicator());
-                        }
-                        return ListView.builder(
-                            controller: _scrollController,
-                            itemCount: snapshot.data!['messages'].length,
-                            itemBuilder: (context, index) {
-                              return MessageCard(
-                                  type: snapshot.data!['messages'][index]
-                                              ['user_id'] ==
-                                          FirebaseAuth.instance.currentUser!.uid
-                                      ? Message.SEND
-                                      : Message.RECEIVE,
-                                  message: snapshot.data!['messages'][index]
-                                      ['message_text'],
-                                  chatTime: snapshot.data!['messages'][index]
-                                          ['sent_at']
-                                      .toDate());
-                            });
-                      })),
+                padding: const EdgeInsets.all(10.0),
+                child: _buildMessageList(),
+              ),
             ),
-            Container(
-                color: const Color(0xffF3EDF7),
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height * 0.1,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Icon(
-                      Icons.add_circle,
-                      size: MediaQuery.of(context).size.width * 0.08,
-                    ),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.7,
-                      height: MediaQuery.of(context).size.height * 0.06,
-                      child: TextField(
-                        controller: chatController,
-                        onSubmitted: (mesage) {
-                          ChatService.instance
-                              .sendMessage(widget.roomId, message);
-
-                          chatController.clear();
-                        },
-                        decoration: const InputDecoration(
-                            border: OutlineInputBorder(
-                                borderSide: BorderSide.none,
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(10))),
-                            filled: true,
-                            fillColor: Colors.white),
-                      ),
-                    ),
-                    const Icon(Icons.send),
-                  ],
-                )),
+            _buildInputField(),
           ],
         ),
       ),

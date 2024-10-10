@@ -17,6 +17,7 @@ class RoomCard extends StatefulWidget {
   final bool startStudy; // 스터디 시작 여부
   final String currentUserId; // 현재 사용자 ID
   final String docId; // 스터디룸 Firestore 문서 ID
+  final Function() onCardTap;
 
   RoomCard({
     super.key,
@@ -33,6 +34,7 @@ class RoomCard extends StatefulWidget {
     required this.startStudy,
     required this.currentUserId,
     required this.docId,
+    required this.onCardTap,
   });
 
   @override
@@ -42,17 +44,21 @@ class RoomCard extends StatefulWidget {
 // _RoomCardState 클래스: RoomCard의 상태 관리
 class _RoomCardState extends State<RoomCard> {
   bool open = false; // 카드가 펼쳐져 있는지 여부를 저장하는 변수
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance; // Firestore 인스턴스
+  final FirebaseFirestore _firestore =
+      FirebaseFirestore.instance; // Firestore 인스턴스
 
   // 예약 상태를 Firestore에서 업데이트하는 비동기 함수
   Future<void> updateReservationStatus() async {
     try {
-      final docRef = _firestore.collection('study_rooms').doc(widget.docId); // 스터디룸 문서 참조
+      final docRef =
+          _firestore.collection('study_rooms').doc(widget.docId); // 스터디룸 문서 참조
       final docSnapshot = await docRef.get(); // 문서 데이터 가져오기
 
       if (docSnapshot.exists) {
         // 현재 사용자의 예약 상태 가져오기 (예약이 없으면 기본값은 false)
-        final currentReservation = (docSnapshot.data()?['reservations'] ?? {})[widget.currentUserId] ?? false;
+        final currentReservation =
+            (docSnapshot.data()?['reservations'] ?? {})[widget.currentUserId] ??
+                false;
 
         // 예약 상태 업데이트
         await docRef.update({
@@ -76,7 +82,7 @@ class _RoomCardState extends State<RoomCard> {
     if (widget.startStudy) {
       // 스터디가 시작되었으면 '참여하기' 버튼 생성
       return FilledButton(
-        onPressed: () {},
+        onPressed: widget.onCardTap,
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(double.infinity, 36),
         ),
@@ -86,19 +92,19 @@ class _RoomCardState extends State<RoomCard> {
     // 스터디가 시작되지 않았다면 예약 버튼 또는 예약 취소 버튼 생성
     return widget.reservations
         ? OutlinedButton(
-      onPressed: updateReservationStatus, // 예약 취소
-      style: OutlinedButton.styleFrom(
-        minimumSize: const Size(double.infinity, 36),
-      ),
-      child: const Text('예약 취소'),
-    )
+            onPressed: updateReservationStatus, // 예약 취소
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 36),
+            ),
+            child: const Text('예약 취소'),
+          )
         : FilledButton(
-      onPressed: updateReservationStatus, // 예약하기
-      style: OutlinedButton.styleFrom(
-        minimumSize: const Size(double.infinity, 36),
-      ),
-      child: const Text('예약 하기'),
-    );
+            onPressed: updateReservationStatus, // 예약하기
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 36),
+            ),
+            child: const Text('예약 하기'),
+          );
   }
 
   @override
@@ -121,7 +127,8 @@ class _RoomCardState extends State<RoomCard> {
                     child: SizedBox(
                       width: 42.0,
                       height: 42.0,
-                      child: Image.network(widget.imageUrl, fit: BoxFit.cover), // 이미지 불러오기
+                      child: Image.network(widget.imageUrl,
+                          fit: BoxFit.cover), // 이미지 불러오기
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -130,7 +137,9 @@ class _RoomCardState extends State<RoomCard> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(widget.title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        Text(widget.title,
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold)),
                         Text(widget.host, style: const TextStyle(fontSize: 12)),
                       ],
                     ),
@@ -143,7 +152,9 @@ class _RoomCardState extends State<RoomCard> {
                         open = !open; // 카드를 펼치거나 접는 기능
                       });
                     },
-                    icon: Icon(open ? Icons.keyboard_arrow_up_outlined : Icons.keyboard_arrow_down_outlined),
+                    icon: Icon(open
+                        ? Icons.keyboard_arrow_up_outlined
+                        : Icons.keyboard_arrow_down_outlined),
                   ),
                 ],
               ),
@@ -159,8 +170,10 @@ class _RoomCardState extends State<RoomCard> {
               const SizedBox(height: 8),
               if (open) ...[
                 // 스터디 시작 및 종료 시간 표시
-                Text('시작 시간 : ${widget.startTime}', style: const TextStyle(fontSize: 12)),
-                Text('종료 시간 : ${widget.endTime}', style: const TextStyle(fontSize: 12)),
+                Text('시작 시간 : ${widget.startTime}',
+                    style: const TextStyle(fontSize: 12)),
+                Text('종료 시간 : ${widget.endTime}',
+                    style: const TextStyle(fontSize: 12)),
                 const SizedBox(height: 10),
                 // 참석 인원 정보 표시
                 Text('현재 인원 : ${widget.attendee} / ${widget.maxParticipants}'),

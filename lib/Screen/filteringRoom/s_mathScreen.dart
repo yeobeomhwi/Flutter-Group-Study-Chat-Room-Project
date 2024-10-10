@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../components/w_roomCard.dart';
+import '../s_chatScreen.dart';
 
 class MathScreen extends StatefulWidget {
   const MathScreen({super.key});
@@ -189,6 +190,13 @@ class _MathScreenState extends State<MathScreen> {
                             startStudy: room['startStudy'],
                             currentUserId: currentUserId,
                             docId: room['docId'],
+                            onCardTap: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => ChatScreen(
+                                          room: room, roomId: room['docId'])));
+                            },
                           );
                         },
                       ),
