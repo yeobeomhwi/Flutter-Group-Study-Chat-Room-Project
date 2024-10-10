@@ -79,9 +79,9 @@ class CreateRoom {
       // 방 생성 후 채팅 데이터도 동일한 ID로 저장
       List<Map<String, dynamic>> chatData = [
         {
-          'user': userName,
-          'message': '스터디를 생성하였습니다.', // 초기 메시지
-          'createDate': DateTime.now(),
+          'user_id': userName,
+          'message_text': '스터디를 생성하였습니다.', // 초기 메시지
+          'sent_at': DateTime.now(),
         },
       ];
       await _firestore
