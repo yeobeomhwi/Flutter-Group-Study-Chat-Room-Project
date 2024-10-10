@@ -9,21 +9,23 @@ class MessageCard extends StatelessWidget {
     required this.type,
     required this.message,
     required this.chatTime,
+    required this.name,
   });
 
   final Message type;
   final String message;
   final DateTime chatTime;
+  final String name;
 
   @override
   Widget build(BuildContext context) {
     return type == Message.SEND
-        ? sendMessage(context, message, chatTime)
-        : receiveMessage(context, message, chatTime);
+        ? sendMessage(context, message, chatTime,name)
+        : receiveMessage(context, message, chatTime, name);
   }
 }
 
-Widget sendMessage(BuildContext context, String message, DateTime chatTime) {
+Widget sendMessage(BuildContext context, String message, DateTime chatTime,String name) {
   return Column(
     children: [
       SizedBox(
@@ -65,7 +67,7 @@ Widget sendMessage(BuildContext context, String message, DateTime chatTime) {
                   decoration: const BoxDecoration(
                       color: Colors.grey, shape: BoxShape.circle),
                 ),
-                const Text('닉네임')
+                Text(name),
               ],
             )
           ],
@@ -76,7 +78,7 @@ Widget sendMessage(BuildContext context, String message, DateTime chatTime) {
   );
 }
 
-Widget receiveMessage(BuildContext context, String message, DateTime chatTime) {
+Widget receiveMessage(BuildContext context, String message, DateTime chatTime, String name) {
   return Column(
     children: [
       SizedBox(
@@ -94,7 +96,7 @@ Widget receiveMessage(BuildContext context, String message, DateTime chatTime) {
                   decoration: const BoxDecoration(
                       color: Colors.grey, shape: BoxShape.circle),
                 ),
-                const Text('닉네임')
+                Text(name),
               ],
             ),
             SizedBox(width: MediaQuery.of(context).size.width * 0.02),

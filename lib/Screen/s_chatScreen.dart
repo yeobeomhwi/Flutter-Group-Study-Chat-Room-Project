@@ -36,7 +36,22 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  // 채팅 메시지 스트림을 렌더링하는 메서드
+  // 사용자 이름을 가져온느 함수
+  Future<String> getUserName(String uid) async {
+    try {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      if (userDoc.exists) {
+        return userDoc['name'] ?? 'Unknown User'; // 기본값 제공
+      } else {
+        return 'User not found';
+      }
+    } catch (e) {
+      print("Error fetching user name: $e");
+      return 'Error';
+    }
+  }
+
+
   Widget _buildMessageList() {
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
@@ -64,11 +79,28 @@ class _ChatScreenState extends State<ChatScreen> {
             final messageData = messages[index];
             final bool isSendByCurrentUser =
                 messageData['user_id'] == FirebaseAuth.instance.currentUser!.uid;
+            final String uid = messageData['user_id'];
 
-            return MessageCard(
-              type: isSendByCurrentUser ? Message.SEND : Message.RECEIVE,
-              message: messageData['message_text'],
-              chatTime: messageData['sent_at'].toDate(),
+            return FutureBuilder<String>(
+              future: getUserName(uid),
+              builder: (context, userSnapshot) {
+                if (userSnapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator()); // 사용자 이름 로딩 중 표시
+                } else if (userSnapshot.hasError) {
+                  return const Text('Error fetching user name');
+                } else if (!userSnapshot.hasData) {
+                  return const Text('No name found');
+                }
+
+                final userName = userSnapshot.data!;
+
+                return MessageCard(
+                  type: isSendByCurrentUser ? Message.SEND : Message.RECEIVE,
+                  message: messageData['message_text'],
+                  chatTime: messageData['sent_at'].toDate(),
+                  name: userName, // 사용자 이름을 MessageCard에 전달
+                );
+              },
             );
           },
         );
