@@ -3,28 +3,27 @@ import 'package:flutter/material.dart';
 class TopicMenuCard extends StatefulWidget {
   final String title; // 카드 제목
   final String uri; // 이미지 URI
+  final Function() onCardTap; // 수정: 콜백 타입 수정
 
-  const TopicMenuCard({super.key, required this.title, required this.uri});
+  const TopicMenuCard({
+    super.key,
+    required this.title,
+    required this.uri,
+    required this.onCardTap, // 수정: onCardTap 매개변수 추가
+  });
 
   @override
   State<TopicMenuCard> createState() => _TopicMenuCardState();
 }
 
 class _TopicMenuCardState extends State<TopicMenuCard> {
-  void _onCardTap() {
-    // 카드가 탭되었을 때 실행할 코드
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${widget.title}이(가) 탭되었습니다!')),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
       width: 180, // 카드 너비
       height: 200, // 카드 높이
       child: GestureDetector(
-        onTap: _onCardTap, // 탭 이벤트 추가
+        onTap: widget.onCardTap, // 수정: widget.onCardTap으로 수정
         child: Card(
           elevation: 4, // 카드 그림자 효과
           shape: RoundedRectangleBorder(

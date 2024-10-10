@@ -1,20 +1,19 @@
 import 'dart:async';
 
-import 'package:app_team2/Screen/filteringRoom/s_filteringMainScreen.dart';
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../components/w_roomCard.dart'; // RoomCard 불러오기
-import 's_createRoom.dart'; // 방 생성 페이지
+import 'package:flutter/material.dart';
 
-class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+import '../../components/w_roomCard.dart';
+
+class MathScreen extends StatefulWidget {
+  const MathScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  State<MathScreen> createState() => _MathScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MathScreenState extends State<MathScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -60,7 +59,11 @@ class _MainScreenState extends State<MainScreen> {
   // Firestore에서 방 정보 가져오는 메서드
   Future<void> _fetchRooms() async {
     try {
-      final snapshot = await _firestore.collection('study_rooms').get();
+      final snapshot = await _firestore
+          .collection('study_rooms')
+          .where('topic', isEqualTo: '수학') // 필터링 조건 추가
+          .get();
+
       setState(() {
         _rooms = snapshot.docs.map((doc) {
           final data = doc.data();
@@ -145,17 +148,6 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) =>
-                      const FilteringMainScreen()), // 방 생성 페이지로 이동
-            );
-          },
-          icon: const Icon(Icons.filter_alt_outlined),
-        ),
         title: const Center(child: Text('스터디 목록')),
         actions: [
           IconButton(
@@ -209,16 +201,6 @@ class _MainScreenState extends State<MainScreen> {
           BottomNavigationBarItem(
               icon: Icon(Icons.chat_bubble_outline), label: '채팅'),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const CreateRoomPage()), // 방 생성 페이지로 이동
-          );
-        },
-        child: const Icon(Icons.add), // 방 추가 버튼
       ),
     );
   }

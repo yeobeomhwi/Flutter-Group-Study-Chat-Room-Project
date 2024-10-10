@@ -1,20 +1,19 @@
 import 'dart:async';
 
-import 'package:app_team2/Screen/filteringRoom/s_filteringMainScreen.dart';
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../components/w_roomCard.dart'; // RoomCard 불러오기
-import 's_createRoom.dart'; // 방 생성 페이지
+import 'package:flutter/material.dart';
 
-class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+import '../../components/w_roomCard.dart';
+
+class ReadingScreen extends StatefulWidget {
+  const ReadingScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  State<ReadingScreen> createState() => _ReadingScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _ReadingScreenState extends State<ReadingScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -60,14 +59,18 @@ class _MainScreenState extends State<MainScreen> {
   // Firestore에서 방 정보 가져오는 메서드
   Future<void> _fetchRooms() async {
     try {
-      final snapshot = await _firestore.collection('study_rooms').get();
+      final snapshot = await _firestore
+          .collection('study_rooms')
+          .where('topic', isEqualTo: '독서') // 필터링 조건 추가
+          .get();
+
       setState(() {
         _rooms = snapshot.docs.map((doc) {
           final data = doc.data();
           final startTime = (data['startTime'] as Timestamp).toDate();
           final endTime = (data['endTime'] as Timestamp).toDate();
           final createDate =
-              (data['createDate'] as Timestamp).toDate(); // createDate 가져오기
+          (data['createDate'] as Timestamp).toDate(); // createDate 가져오기
 
           return {
             'docId': doc.id,
@@ -94,7 +97,7 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> updateReservationStatus(String docId) async {
     try {
       final docSnapshot =
-          await _firestore.collection('study_rooms').doc(docId).get();
+      await _firestore.collection('study_rooms').doc(docId).get();
       if (docSnapshot.exists) {
         final reservations =
             docSnapshot.data()?['reservations'] as Map<String, dynamic>? ?? {};
@@ -145,17 +148,6 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) =>
-                      const FilteringMainScreen()), // 방 생성 페이지로 이동
-            );
-          },
-          icon: const Icon(Icons.filter_alt_outlined),
-        ),
         title: const Center(child: Text('스터디 목록')),
         actions: [
           IconButton(
@@ -167,58 +159,48 @@ class _MainScreenState extends State<MainScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator()) // Loading state
           : _rooms.isEmpty
-              ? const Center(child: Text('방이 없습니다.')) // No rooms
-              : Column(
-                  children: [
-                    const Text('최신순 정렬'),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: _rooms.length,
-                        itemBuilder: (context, index) {
-                          final room = _rooms[index];
-                          final reservations =
-                              room['reservations'] as Map<String, dynamic>? ??
-                                  {};
-                          final userReservation =
-                              reservations[currentUserId] ?? false;
+          ? const Center(child: Text('방이 없습니다.')) // No rooms
+          : Column(
+        children: [
+          const Text('최신순 정렬'),
+          Expanded(
+            child: ListView.builder(
+              itemCount: _rooms.length,
+              itemBuilder: (context, index) {
+                final room = _rooms[index];
+                final reservations =
+                    room['reservations'] as Map<String, dynamic>? ??
+                        {};
+                final userReservation =
+                    reservations[currentUserId] ?? false;
 
-                          return RoomCard(
-                            title: room['title'],
-                            host: room['host'],
-                            content: room['content'],
-                            startTime: room['startTime'],
-                            endTime: room['endTime'],
-                            attendee: room['attendee'] ?? 0,
-                            maxParticipants: room['maxParticipants'],
-                            topic: room['topic'],
-                            imageUrl: 'https://picsum.photos/200/200',
-                            // Temporary image URL
-                            reservations: userReservation,
-                            startStudy: room['startStudy'],
-                            currentUserId: currentUserId,
-                            docId: room['docId'],
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
+                return RoomCard(
+                  title: room['title'],
+                  host: room['host'],
+                  content: room['content'],
+                  startTime: room['startTime'],
+                  endTime: room['endTime'],
+                  attendee: room['attendee'] ?? 0,
+                  maxParticipants: room['maxParticipants'],
+                  topic: room['topic'],
+                  imageUrl: 'https://picsum.photos/200/200',
+                  // Temporary image URL
+                  reservations: userReservation,
+                  startStudy: room['startStudy'],
+                  currentUserId: currentUserId,
+                  docId: room['docId'],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "홈"),
           BottomNavigationBarItem(
               icon: Icon(Icons.chat_bubble_outline), label: '채팅'),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const CreateRoomPage()), // 방 생성 페이지로 이동
-          );
-        },
-        child: const Icon(Icons.add), // 방 추가 버튼
       ),
     );
   }

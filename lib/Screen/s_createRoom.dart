@@ -228,10 +228,10 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
                           builder: (context) => const MainScreen()),
                     );
                   } catch (e) {
-                    // Error message
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('방 생성 중 오류 발생: $e')),
                     );
+                    print(e);
                   }
                 } else {
                   // Validation message
