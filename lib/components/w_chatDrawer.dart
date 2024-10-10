@@ -13,7 +13,7 @@ class ChatDrawer extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 30),
         child: Column(children: [
           const Text('참여 인원', style: TextStyle(fontSize: 32)),
-          Text('[${room['attendee']} / ${room['maxParticipants']}]',
+          Text('[${room['reservations'].length} / ${room['maxParticipants']}]',
               style: const TextStyle(fontSize: 28)),
           Expanded(
             child: ListView.builder(

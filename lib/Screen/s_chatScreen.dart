@@ -38,11 +38,15 @@ class _ChatScreenState extends State<ChatScreen> {
 
   // 사용자 이름을 가져온느 함수
   Future<String> getUserName(String uid) async {
+    print("Fetching user name for uid: $uid"); // Debugging line
     try {
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      DocumentSnapshot userDoc =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
       if (userDoc.exists) {
+        print("User document found: ${userDoc.data()}"); // 문서 데이터 로깅
         return userDoc['name'] ?? 'Unknown User'; // 기본값 제공
       } else {
+        print("User document does not exist for uid: $uid");
         return 'User not found';
       }
     } catch (e) {
@@ -50,7 +54,6 @@ class _ChatScreenState extends State<ChatScreen> {
       return 'Error';
     }
   }
-
 
   Widget _buildMessageList() {
     return StreamBuilder<DocumentSnapshot>(
@@ -77,15 +80,16 @@ class _ChatScreenState extends State<ChatScreen> {
           itemCount: messages.length,
           itemBuilder: (context, index) {
             final messageData = messages[index];
-            final bool isSendByCurrentUser =
-                messageData['user_id'] == FirebaseAuth.instance.currentUser!.uid;
+            final bool isSendByCurrentUser = messageData['user_id'] ==
+                FirebaseAuth.instance.currentUser!.uid;
             final String uid = messageData['user_id'];
 
             return FutureBuilder<String>(
               future: getUserName(uid),
               builder: (context, userSnapshot) {
                 if (userSnapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator()); // 사용자 이름 로딩 중 표시
+                  return const Center(
+                      child: CircularProgressIndicator()); // 사용자 이름 로딩 중 표시
                 } else if (userSnapshot.hasError) {
                   return const Text('Error fetching user name');
                 } else if (!userSnapshot.hasData) {
@@ -149,7 +153,7 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: Colors.transparent,
         centerTitle: true,
         title: Text(
-          '${widget.room['title']} (${widget.room['attendee']} / ${widget.room['maxParticipants']})',
+          '${widget.room['title']} (${widget.room['reservations'].length} / ${widget.room['maxParticipants']})',
         ),
       ),
       endDrawer: ChatDrawer(room: widget.room),
