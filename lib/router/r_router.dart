@@ -38,30 +38,21 @@ class CustomRouter {
         path: "/Certificate",
         builder: (context, state) => const CertificateScreen()),
     GoRoute(
-        path: "/Filtering",
-        builder: (context, state) => const FilteringMainScreen(),
-        routes: [
-          GoRoute(
-              path: "/Certificate",
-              builder: (context, state) => const CertificateScreen()),
-          GoRoute(
-              path: "/Design",
-              builder: (context, state) => const DesignScreen()),
-          GoRoute(path: "/Eng", builder: (context, state) => const EngScreen()),
-          GoRoute(
-              path: "/Math", builder: (context, state) => const MathScreen()),
-          GoRoute(
-              path: "/Program",
-              builder: (context, state) => const ProgramScreen()),
-          GoRoute(
-              path: "/Reading",
-              builder: (context, state) => const ReadingScreen()),
-          GoRoute(
-              path: "/Science",
-              builder: (context, state) => const ScienceScreen()),
-          GoRoute(
-              path: "/Sports",
-              builder: (context, state) => const SportsScreen()),
-        ]),
+      path: "/Filtering",
+      builder: (context, state) => const FilteringMainScreen(),
+    ),
+    GoRoute(
+        path: "/Certificate",
+        builder: (context, state) => const CertificateScreen()),
+    GoRoute(path: "/Design", builder: (context, state) => const DesignScreen()),
+    GoRoute(path: "/Eng", builder: (context, state) => const EngScreen()),
+    GoRoute(path: "/Math", builder: (context, state) => const MathScreen()),
+    GoRoute(
+        path: "/Program", builder: (context, state) => const ProgramScreen()),
+    GoRoute(
+        path: "/Reading", builder: (context, state) => const ReadingScreen()),
+    GoRoute(
+        path: "/Science", builder: (context, state) => const ScienceScreen()),
+    GoRoute(path: "/Sports", builder: (context, state) => const SportsScreen()),
   ]);
 }
