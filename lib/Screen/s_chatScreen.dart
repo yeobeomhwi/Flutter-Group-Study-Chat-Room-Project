@@ -1,6 +1,7 @@
 import 'package:app_team2/components/w_chatDrawer.dart';
 import 'package:app_team2/components/w_messageCard.dart';
 import 'package:app_team2/services/sv_chat.dart';
+import 'package:app_team2/services/sv_notification.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -16,14 +17,14 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final TextEditingController chatController = TextEditingController();
+  final TextEditingController _chatController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
   // 메시지 전송 함수
   void _sendMessage() {
-    if (chatController.text.isNotEmpty) {
-      ChatService.instance.sendMessage(widget.roomId, chatController.text);
-      chatController.clear();
+    if (_chatController.text.isNotEmpty) {
+      ChatService.instance.sendMessage(widget.roomId, _chatController.text);
+      _chatController.clear();
     }
   }
 
@@ -119,13 +120,18 @@ class _ChatScreenState extends State<ChatScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
       child: Row(
         children: [
-          Icon(
-            Icons.add_circle,
-            size: MediaQuery.of(context).size.width * 0.08,
+          GestureDetector(
+            onTap: () async {
+              NotificationService.instance.show();
+            },
+            child: Icon(
+              Icons.add_circle,
+              size: MediaQuery.of(context).size.width * 0.08,
+            ),
           ),
           Expanded(
             child: TextField(
-              controller: chatController,
+              controller: _chatController,
               onSubmitted: (_) => _sendMessage(),
               decoration: const InputDecoration(
                 border: OutlineInputBorder(
