@@ -38,12 +38,15 @@ class _ChatScreenState extends State<ChatScreen> {
 
   // 사용자 이름을 가져온느 함수
   Future<String> getUserName(String uid) async {
+    print("Fetching user name for uid: $uid"); // Debugging line
     try {
       DocumentSnapshot userDoc =
           await FirebaseFirestore.instance.collection('users').doc(uid).get();
       if (userDoc.exists) {
+        print("User document found: ${userDoc.data()}"); // 문서 데이터 로깅
         return userDoc['name'] ?? 'Unknown User'; // 기본값 제공
       } else {
+        print("User document does not exist for uid: $uid");
         return 'User not found';
       }
     } catch (e) {
@@ -150,7 +153,7 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: Colors.transparent,
         centerTitle: true,
         title: Text(
-          '${widget.room['title']} (${widget.room['attendee']} / ${widget.room['maxParticipants']})',
+          '${widget.room['title']} (${widget.room['reservations'].length} / ${widget.room['maxParticipants']})',
         ),
       ),
       endDrawer: ChatDrawer(room: widget.room),

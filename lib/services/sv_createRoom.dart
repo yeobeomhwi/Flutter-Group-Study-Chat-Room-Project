@@ -10,7 +10,7 @@ class CreateRoom {
     User? user = _auth.currentUser; // 현재 로그인한 사용자
     if (user != null) {
       DocumentSnapshot userDoc =
-          await _firestore.collection('users').doc(user.uid).get();
+      await _firestore.collection('users').doc(user.uid).get();
       return userDoc['name']; // Firestore에서 이름 가져오기
     }
     throw Exception('사용자가 로그인되어 있지 않습니다.');
@@ -39,9 +39,8 @@ class CreateRoom {
     required DateTime startTime,
     required DateTime endTime,
     required int maxParticipants,
-    required int attendee,
     required bool startStudy,
-    required Map reservations,
+    required List<dynamic> reservations, // 예약을 String array로 변경
   }) async {
     // 사용자 이름 가져오기
     String host = await getUserName(); // 이름 가져오기
@@ -54,10 +53,7 @@ class CreateRoom {
       'content': content,
       'maxParticipants': maxParticipants,
       'host': host, // 방 생성자 이름 추가
-      'attendee': attendee,
-      'reservations': {
-        currentUserId: false, // 기본 예약 상태를 false로 설정
-      },
+      'reservations': reservations, // String array로 설정
       'startStudy': startStudy,
       'startTime': startTime,
       'endTime': endTime,
@@ -77,13 +73,7 @@ class CreateRoom {
       String userName = await getUserName(); // 사용자 이름 가져오기
 
       // 방 생성 후 채팅 데이터도 동일한 ID로 저장
-      List<Map<String, dynamic>> chatData = [
-        {
-          'user_id': userName,
-          'message_text': '스터디를 생성하였습니다.', // 초기 메시지
-          'sent_at': DateTime.now(),
-        },
-      ];
+      List<Map<String, dynamic>> chatData = [];
       await _firestore
           .collection('chats')
           .doc(newId.toString()) // 방 ID와 동일한 문서 ID 사용

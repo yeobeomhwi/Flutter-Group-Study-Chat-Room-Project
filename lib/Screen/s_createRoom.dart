@@ -200,8 +200,7 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
                       startTime: _startDate!, // Pass the DateTime directly
                       endTime: _endDate!, // Pass the DateTime directly
                       maxParticipants: maxParticipants,
-                      attendee: 1,
-                      reservations: {},
+                      reservations: [],
                       startStudy: false, // Additional parameters
                     );
 

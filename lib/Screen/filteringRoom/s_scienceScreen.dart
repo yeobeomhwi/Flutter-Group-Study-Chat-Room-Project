@@ -57,7 +57,7 @@ class _ScienceScreenState extends State<ScienceScreen> {
     }
   }
 
-  // Firestore에서 방 정보 가져오는 메서드
+// Firestore에서 방 정보 가져오는 메서드
   Future<void> _fetchRooms() async {
     try {
       final snapshot = await _firestore
@@ -70,8 +70,8 @@ class _ScienceScreenState extends State<ScienceScreen> {
           final data = doc.data();
           final startTime = (data['startTime'] as Timestamp).toDate();
           final endTime = (data['endTime'] as Timestamp).toDate();
-          final createDate =
-              (data['createDate'] as Timestamp).toDate(); // createDate 가져오기
+          final createDate = (data['createDate'] as Timestamp).toDate(); // createDate 가져오기
+          final reservations = data['reservations'] as List<dynamic>? ?? []; // 변경된 부분
 
           return {
             'docId': doc.id,
@@ -79,6 +79,7 @@ class _ScienceScreenState extends State<ScienceScreen> {
             'startTime': startTime,
             'endTime': endTime,
             'createDate': createDate, // createDate 추가
+            'reservations': reservations, // reservations도 추가
           };
         }).toList();
 
@@ -91,26 +92,6 @@ class _ScienceScreenState extends State<ScienceScreen> {
       setState(() {
         _isLoading = false; // 로딩 완료
       });
-    }
-  }
-
-  // 예약 상태 업데이트하는 메서드
-  Future<void> updateReservationStatus(String docId) async {
-    try {
-      final docSnapshot =
-          await _firestore.collection('study_rooms').doc(docId).get();
-      if (docSnapshot.exists) {
-        final reservations =
-            docSnapshot.data()?['reservations'] as Map<String, dynamic>? ?? {};
-        final currentUserReservation = reservations[currentUserId] ?? false;
-        await _firestore.collection('study_rooms').doc(docId).update({
-          'reservations.$currentUserId': !currentUserReservation, // 상태 반전
-        });
-      } else {
-        print('문서가 존재하지 않습니다.');
-      }
-    } catch (e) {
-      print('예약 상태 업데이트 중 오류 발생: $e');
     }
   }
 
@@ -144,72 +125,59 @@ class _ScienceScreenState extends State<ScienceScreen> {
       print('startStudy 상태 업데이트 중 오류 발생: $e');
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Center(child: Text('스터디 목록')),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.account_circle_outlined),
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator()) // Loading state
-          : _rooms.isEmpty
-              ? const Center(child: Text('방이 없습니다.')) // No rooms
-              : Column(
-                  children: [
-                    const Text('최신순 정렬'),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: _rooms.length,
-                        itemBuilder: (context, index) {
-                          final room = _rooms[index];
-                          final reservations =
-                              room['reservations'] as Map<String, dynamic>? ??
-                                  {};
-                          final userReservation =
-                              reservations[currentUserId] ?? false;
+        appBar: AppBar(
+          title: const Center(child: Text('스터디 목록')),
+        ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator()) // Loading state
+            : _rooms.isEmpty
+            ? const Center(child: Text('방이 없습니다.')) // No rooms
+            : Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                itemCount: _rooms.length,
+                itemBuilder: (context, index) {
+                  final room = _rooms[index];
+                  final reservations = room['reservations'] as List<dynamic>? ?? [];
 
-                          return RoomCard(
-                            title: room['title'],
-                            host: room['host'],
-                            content: room['content'],
-                            startTime: room['startTime'],
-                            endTime: room['endTime'],
-                            attendee: room['attendee'] ?? 0,
-                            maxParticipants: room['maxParticipants'],
-                            topic: room['topic'],
-                            imageUrl: 'https://picsum.photos/200/200',
-                            // Temporary image URL
-                            reservations: userReservation,
-                            startStudy: room['startStudy'],
-                            currentUserId: currentUserId,
-                            docId: room['docId'],
-                            onCardTap: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => ChatScreen(
-                                          room: room, roomId: room['docId'])));
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "홈"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.chat_bubble_outline), label: '채팅'),
-        ],
-      ),
+                  return RoomCard(
+                    title: room['title'],
+                    host: room['host'],
+                    content: room['content'],
+                    startTime: room['startTime'],
+                    endTime: room['endTime'],
+                    maxParticipants: room['maxParticipants'],
+                    topic: room['topic'],
+                    imageUrl: 'https://picsum.photos/200/200',
+                    // Temporary image URL
+                    reservations: reservations,
+                    startStudy: room['startStudy'],
+                    currentUserId: currentUserId,
+                    docId: room['docId'],
+                    onCardTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ChatScreen(
+                                  room: room, roomId: room['docId'])));
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: "홈"),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.chat_bubble_outline), label: '채팅'),
+          ],
+        )
     );
   }
 }
