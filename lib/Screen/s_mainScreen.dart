@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:app_team2/Screen/filteringRoom/s_filteringMainScreen.dart';
 import 'package:app_team2/Screen/s_chatScreen.dart';
+import 'package:app_team2/router/r_router.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
 import '../components/w_roomCard.dart'; // RoomCard 불러오기
 import 's_createRoom.dart'; // 방 생성 페이지
 
@@ -58,21 +60,20 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
-
 // Firestore에서 방 정보 가져오는 메서드
   Future<void> _fetchRooms() async {
     try {
-      final snapshot = await _firestore
-          .collection('study_rooms')
-          .get();
+      final snapshot = await _firestore.collection('study_rooms').get();
 
       setState(() {
         _rooms = snapshot.docs.map((doc) {
           final data = doc.data();
           final startTime = (data['startTime'] as Timestamp).toDate();
           final endTime = (data['endTime'] as Timestamp).toDate();
-          final createDate = (data['createDate'] as Timestamp).toDate(); // createDate 가져오기
-          final reservations = data['reservations'] as List<dynamic>? ?? []; // 변경된 부분
+          final createDate =
+              (data['createDate'] as Timestamp).toDate(); // createDate 가져오기
+          final reservations =
+              data['reservations'] as List<dynamic>? ?? []; // 변경된 부분
 
           return {
             'docId': doc.id,
@@ -133,12 +134,7 @@ class _MainScreenState extends State<MainScreen> {
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) =>
-                      const FilteringMainScreen()), // 방 생성 페이지로 이동
-            );
+            GoRouter.of(context).push('/Filtering');
           },
           icon: const Icon(Icons.filter_alt_outlined),
         ),
@@ -162,7 +158,8 @@ class _MainScreenState extends State<MainScreen> {
                         itemCount: _rooms.length,
                         itemBuilder: (context, index) {
                           final room = _rooms[index];
-                          final reservations = room['reservations'] as List<dynamic>? ?? [];
+                          final reservations =
+                              room['reservations'] as List<dynamic>? ?? [];
 
                           return RoomCard(
                             title: room['title'],
@@ -179,11 +176,10 @@ class _MainScreenState extends State<MainScreen> {
                             currentUserId: currentUserId,
                             docId: room['docId'],
                             onCardTap: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => ChatScreen(
-                                          room: room, roomId: room['docId'])));
+                              GoRouter.of(context).push('/Chat', extra: {
+                                'room': room,
+                                'roomId': room['docId']
+                              });
                             },
                           );
                         },
@@ -200,11 +196,7 @@ class _MainScreenState extends State<MainScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const CreateRoomPage()), // 방 생성 페이지로 이동
-          );
+          GoRouter.of(context).push('/CreateRoom');
         },
         child: const Icon(Icons.add), // 방 추가 버튼
       ),

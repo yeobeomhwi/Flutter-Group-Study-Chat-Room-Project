@@ -1,4 +1,5 @@
 import 'package:app_team2/Screen/s_loginScreen.dart';
+import 'package:app_team2/router/r_router.dart';
 import 'package:app_team2/services/sv_notification.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -27,12 +28,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
+        routerConfig: CustomRouter.router,
         title: 'alarm_app',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           useMaterial3: true,
-        ),
-        home: LoginScreen());
+        ));
   }
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../components/w_roomCard.dart';
 import '../s_chatScreen.dart';
 
@@ -68,8 +69,10 @@ class _CertificateScreenState extends State<CertificateScreen> {
           final data = doc.data();
           final startTime = (data['startTime'] as Timestamp).toDate();
           final endTime = (data['endTime'] as Timestamp).toDate();
-          final createDate = (data['createDate'] as Timestamp).toDate(); // createDate 가져오기
-          final reservations = data['reservations'] as List<dynamic>? ?? []; // 변경된 부분
+          final createDate =
+              (data['createDate'] as Timestamp).toDate(); // createDate 가져오기
+          final reservations =
+              data['reservations'] as List<dynamic>? ?? []; // 변경된 부분
 
           return {
             'docId': doc.id,
@@ -123,6 +126,7 @@ class _CertificateScreenState extends State<CertificateScreen> {
       print('startStudy 상태 업데이트 중 오류 발생: $e');
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -132,50 +136,49 @@ class _CertificateScreenState extends State<CertificateScreen> {
         body: _isLoading
             ? const Center(child: CircularProgressIndicator()) // Loading state
             : _rooms.isEmpty
-            ? const Center(child: Text('방이 없습니다.')) // No rooms
-            : Column(
-          children: [
-            Expanded(
-              child: ListView.builder(
-                itemCount: _rooms.length,
-                itemBuilder: (context, index) {
-                  final room = _rooms[index];
-                  final reservations = room['reservations'] as List<dynamic>? ?? [];
+                ? const Center(child: Text('방이 없습니다.')) // No rooms
+                : Column(
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: _rooms.length,
+                          itemBuilder: (context, index) {
+                            final room = _rooms[index];
+                            final reservations =
+                                room['reservations'] as List<dynamic>? ?? [];
 
-                  return RoomCard(
-                    title: room['title'],
-                    host: room['host'],
-                    content: room['content'],
-                    startTime: room['startTime'],
-                    endTime: room['endTime'],
-                    maxParticipants: room['maxParticipants'],
-                    topic: room['topic'],
-                    imageUrl: 'https://picsum.photos/200/200',
-                    // Temporary image URL
-                    reservations: reservations,
-                    startStudy: room['startStudy'],
-                    currentUserId: currentUserId,
-                    docId: room['docId'],
-                    onCardTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => ChatScreen(
-                                  room: room, roomId: room['docId'])));
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+                            return RoomCard(
+                              title: room['title'],
+                              host: room['host'],
+                              content: room['content'],
+                              startTime: room['startTime'],
+                              endTime: room['endTime'],
+                              maxParticipants: room['maxParticipants'],
+                              topic: room['topic'],
+                              imageUrl: 'https://picsum.photos/200/200',
+                              // Temporary image URL
+                              reservations: reservations,
+                              startStudy: room['startStudy'],
+                              currentUserId: currentUserId,
+                              docId: room['docId'],
+                              onCardTap: () {
+                                GoRouter.of(context).push('/Chat', extra: {
+                                  'room': room,
+                                  'roomId': room['docId']
+                                });
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
         bottomNavigationBar: BottomNavigationBar(
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: "홈"),
             BottomNavigationBarItem(
                 icon: Icon(Icons.chat_bubble_outline), label: '채팅'),
           ],
-        )
-    );
+        ));
   }
 }
