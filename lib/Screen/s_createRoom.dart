@@ -2,6 +2,7 @@ import 'package:app_team2/Screen/s_mainScreen.dart';
 import 'package:app_team2/components/w_subheading.dart';
 import 'package:app_team2/services/sv_createRoom.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class CreateRoomPage extends StatefulWidget {
   const CreateRoomPage({super.key});
@@ -222,10 +223,7 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
                     });
 
                     // Navigate to MainScreen
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                          builder: (context) => const MainScreen()),
-                    );
+                    GoRouter.of(context).pushReplacement('/Main');
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('방 생성 중 오류 발생: $e')),

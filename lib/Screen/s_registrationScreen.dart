@@ -2,6 +2,7 @@ import 'package:app_team2/Screen/s_loginScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:go_router/go_router.dart';
 
 class RegistrationScreen extends StatefulWidget {
   @override
@@ -16,33 +17,33 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   bool _isLoading = false;
 
   List<Step> _steps() => [
-    Step(
-      title: Text('이메일 입력'),
-      content: TextField(
-        controller: _emailController,
-        decoration: InputDecoration(labelText: '이메일'),
-        keyboardType: TextInputType.emailAddress,
-      ),
-      isActive: _currentStep >= 0,
-    ),
-    Step(
-      title: Text('비밀번호 입력'),
-      content: TextField(
-        controller: _passwordController,
-        decoration: InputDecoration(labelText: '비밀번호'),
-        obscureText: true,
-      ),
-      isActive: _currentStep >= 1,
-    ),
-    Step(
-      title: Text('이름 입력'),
-      content: TextField(
-        controller: _nameController,
-        decoration: InputDecoration(labelText: '이름'),
-      ),
-      isActive: _currentStep >= 2,
-    ),
-  ];
+        Step(
+          title: Text('이메일 입력'),
+          content: TextField(
+            controller: _emailController,
+            decoration: InputDecoration(labelText: '이메일'),
+            keyboardType: TextInputType.emailAddress,
+          ),
+          isActive: _currentStep >= 0,
+        ),
+        Step(
+          title: Text('비밀번호 입력'),
+          content: TextField(
+            controller: _passwordController,
+            decoration: InputDecoration(labelText: '비밀번호'),
+            obscureText: true,
+          ),
+          isActive: _currentStep >= 1,
+        ),
+        Step(
+          title: Text('이름 입력'),
+          content: TextField(
+            controller: _nameController,
+            decoration: InputDecoration(labelText: '이름'),
+          ),
+          isActive: _currentStep >= 2,
+        ),
+      ];
 
   Future<void> registerUser() async {
     if (_emailController.text.isEmpty || !_emailController.text.contains('@')) {
@@ -67,14 +68,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
     try {
       // Firebase Auth를 사용하여 사용자 등록
-      UserCredential userCredential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text,
         password: _passwordController.text,
       );
 
       // Firestore에 사용자 정보 저장
-      await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .set({
         'name': _nameController.text,
         'email': _emailController.text,
       });
@@ -88,10 +92,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       await Future.delayed(Duration(seconds: 2));
 
       // 회원가입 후 로그인 페이지로 이동
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => LoginScreen()), // 로그인 페이지로 이동
-            (route) => false, // 모든 기존 라우트를 제거
-      );
+      GoRouter.of(context).push('/Login');
     } on FirebaseAuthException catch (e) {
       // Error handling
       ScaffoldMessenger.of(context).showSnackBar(
@@ -111,25 +112,25 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       body: _isLoading
           ? Center(child: CircularProgressIndicator()) // Loading indicator
           : Stepper(
-        currentStep: _currentStep,
-        onStepContinue: () {
-          if (_currentStep < _steps().length - 1) {
-            setState(() {
-              _currentStep++;
-            });
-          } else {
-            registerUser(); // 마지막 단계에서 회원가입 처리
-          }
-        },
-        onStepCancel: () {
-          if (_currentStep > 0) {
-            setState(() {
-              _currentStep--;
-            });
-          }
-        },
-        steps: _steps(),
-      ),
+              currentStep: _currentStep,
+              onStepContinue: () {
+                if (_currentStep < _steps().length - 1) {
+                  setState(() {
+                    _currentStep++;
+                  });
+                } else {
+                  registerUser(); // 마지막 단계에서 회원가입 처리
+                }
+              },
+              onStepCancel: () {
+                if (_currentStep > 0) {
+                  setState(() {
+                    _currentStep--;
+                  });
+                }
+              },
+              steps: _steps(),
+            ),
     );
   }
 }

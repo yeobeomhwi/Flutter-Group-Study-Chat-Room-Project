@@ -1,10 +1,8 @@
-
 import 'package:app_team2/Screen/s_mainScreen.dart';
 import 'package:app_team2/Screen/s_registrationScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
-
+import 'package:go_router/go_router.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -17,16 +15,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> loginUser() async {
     try {
-      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text,
         password: _passwordController.text,
       );
 
       // 로그인 성공 후의 동작
       print("로그인 성공: ${userCredential.user!.email}");
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => MainScreen()),
-      );
+      GoRouter.of(context).pushReplacement('/Main');
     } on FirebaseAuthException catch (e) {
       // 에러 메시지 출력
       print("로그인 오류: ${e.message}");
@@ -62,9 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
             SizedBox(height: 20),
             TextButton(
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => RegistrationScreen()),
-                );
+                GoRouter.of(context).push('/Registration');
               },
               child: Text(
                 '회원가입',
