@@ -16,14 +16,14 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final TextEditingController chatController = TextEditingController();
+  final TextEditingController _chatController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
   // 메시지 전송 함수
   void _sendMessage() {
-    if (chatController.text.isNotEmpty) {
-      ChatService.instance.sendMessage(widget.roomId, chatController.text);
-      chatController.clear();
+    if (_chatController.text.isNotEmpty) {
+      ChatService.instance.sendMessage(widget.roomId, _chatController.text);
+      _chatController.clear();
     }
   }
 
@@ -39,7 +39,8 @@ class _ChatScreenState extends State<ChatScreen> {
   // 사용자 이름을 가져온느 함수
   Future<String> getUserName(String uid) async {
     try {
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      DocumentSnapshot userDoc =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
       if (userDoc.exists) {
         return userDoc['name'] ?? 'Unknown User'; // 기본값 제공
       } else {
@@ -50,7 +51,6 @@ class _ChatScreenState extends State<ChatScreen> {
       return 'Error';
     }
   }
-
 
   Widget _buildMessageList() {
     return StreamBuilder<DocumentSnapshot>(
@@ -77,15 +77,16 @@ class _ChatScreenState extends State<ChatScreen> {
           itemCount: messages.length,
           itemBuilder: (context, index) {
             final messageData = messages[index];
-            final bool isSendByCurrentUser =
-                messageData['user_id'] == FirebaseAuth.instance.currentUser!.uid;
+            final bool isSendByCurrentUser = messageData['user_id'] ==
+                FirebaseAuth.instance.currentUser!.uid;
             final String uid = messageData['user_id'];
 
             return FutureBuilder<String>(
               future: getUserName(uid),
               builder: (context, userSnapshot) {
                 if (userSnapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator()); // 사용자 이름 로딩 중 표시
+                  return const Center(
+                      child: CircularProgressIndicator()); // 사용자 이름 로딩 중 표시
                 } else if (userSnapshot.hasError) {
                   return const Text('Error fetching user name');
                 } else if (!userSnapshot.hasData) {
@@ -121,7 +122,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           Expanded(
             child: TextField(
-              controller: chatController,
+              controller: _chatController,
               onSubmitted: (_) => _sendMessage(),
               decoration: const InputDecoration(
                 border: OutlineInputBorder(
