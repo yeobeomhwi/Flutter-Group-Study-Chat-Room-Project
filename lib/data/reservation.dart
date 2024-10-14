@@ -1,14 +1,12 @@
 class Reservation {
   // int message_id;
-  String user_id;
-  String room_id;
+  List<String> user_id;
   DateTime reservation_time;
   bool notification_sent;
 
   Reservation({
     // required this.message_id,
     required this.user_id,
-    required this.room_id,
     required this.reservation_time,
     required this.notification_sent,
   });
@@ -16,7 +14,6 @@ class Reservation {
   Map<String, dynamic> toMap() {
     return {
       'user_id': user_id,
-      'room_id': room_id,
       'reservation_time': reservation_time,
       'notification_sent': notification_sent,
     };
@@ -26,7 +23,6 @@ class Reservation {
   factory Reservation.fromMap(Map<String, dynamic> map) {
     return Reservation(
       user_id: map['user_id'],
-      room_id: map['room_id'],
       reservation_time: map['reservation_time'],
       notification_sent: map['notification_sent'],
     );

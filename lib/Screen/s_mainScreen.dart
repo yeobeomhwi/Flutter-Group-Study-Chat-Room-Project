@@ -1,14 +1,10 @@
 import 'dart:async';
 
-import 'package:app_team2/Screen/filteringRoom/s_filteringMainScreen.dart';
-import 'package:app_team2/Screen/s_chatScreen.dart';
-import 'package:app_team2/router/r_router.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import '../components/w_roomCard.dart'; // RoomCard 불러오기
-import 's_createRoom.dart'; // 방 생성 페이지
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});

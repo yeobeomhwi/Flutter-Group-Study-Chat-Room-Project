@@ -1,11 +1,3 @@
-import 'package:app_team2/Screen/filteringRoom/s_certificateScreen.dart';
-import 'package:app_team2/Screen/filteringRoom/s_designScreen.dart';
-import 'package:app_team2/Screen/filteringRoom/s_engScreen.dart';
-import 'package:app_team2/Screen/filteringRoom/s_mathScreen.dart';
-import 'package:app_team2/Screen/filteringRoom/s_programScreen.dart';
-import 'package:app_team2/Screen/filteringRoom/s_readingScreen.dart';
-import 'package:app_team2/Screen/filteringRoom/s_scienceScreen.dart';
-import 'package:app_team2/Screen/filteringRoom/s_sportsScreen.dart';
 import 'package:app_team2/components/w_topicMenuCard.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';

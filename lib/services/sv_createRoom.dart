@@ -1,3 +1,4 @@
+import 'package:app_team2/services/sv_notification.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -10,7 +11,7 @@ class CreateRoom {
     User? user = _auth.currentUser; // 현재 로그인한 사용자
     if (user != null) {
       DocumentSnapshot userDoc =
-      await _firestore.collection('users').doc(user.uid).get();
+          await _firestore.collection('users').doc(user.uid).get();
       return userDoc['name']; // Firestore에서 이름 가져오기
     }
     throw Exception('사용자가 로그인되어 있지 않습니다.');
@@ -18,15 +19,17 @@ class CreateRoom {
 
   // Firestore에서 다음 ID를 가져오는 메서드
   Future<int> getNextId() async {
-    QuerySnapshot snapshot = await _firestore
-        .collection('study_rooms')
-        .orderBy(FieldPath.documentId)
-        .get();
+    QuerySnapshot snapshot =
+        await _firestore.collection('study_rooms').orderBy('room_id').get();
 
     if (snapshot.docs.isEmpty) {
       return 1; // 처음 문서일 경우
     } else {
+      for (int i = 0; i < snapshot.docs.length; i++) {
+        print(snapshot.docs[i].data());
+      }
       int lastId = int.parse(snapshot.docs.last.id);
+      print(lastId);
       return lastId + 1; // 마지막 ID에 1을 더함
     }
   }
@@ -44,10 +47,12 @@ class CreateRoom {
   }) async {
     // 사용자 이름 가져오기
     String host = await getUserName(); // 이름 가져오기
-    String currentUserId = _auth.currentUser!.uid; // 현재 사용자 ID 가져오기
+    // String currentUserId = _auth.currentUser!.uid; // 현재 사용자 ID 가져오기
+    int newId = await getNextId();
 
     // 방 정보 객체 생성
     Map<String, dynamic> roomData = {
+      'room_id': newId,
       'title': title,
       'topic': topic,
       'content': content,
@@ -63,14 +68,13 @@ class CreateRoom {
     // Firestore에 방 데이터 저장
     try {
       // 다음 ID를 가져와서 문서 ID로 사용
-      int newId = await getNextId();
       await _firestore
           .collection('study_rooms')
           .doc(newId.toString())
           .set(roomData);
 
       // 사용자의 이름을 chatData에 넣기
-      String userName = await getUserName(); // 사용자 이름 가져오기
+      // String userName = await getUserName(); // 사용자 이름 가져오기
 
       // 방 생성 후 채팅 데이터도 동일한 ID로 저장
       List<Map<String, dynamic>> chatData = [];
@@ -80,6 +84,9 @@ class CreateRoom {
           .set({
         'messages': chatData, // 메시지를 배열로 저장
       });
+
+      // 방 생성 후 예약 테이블 생성
+      NotificationService.instance.setNotification(startTime, newId);
     } catch (e) {
       throw Exception('방 생성 실패: ${e.toString()}');
     }
