@@ -25,8 +25,8 @@ class NotificationService {
 
   void initializeNotification() async {
     AndroidInitializationSettings android =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    DarwinInitializationSettings ios = DarwinInitializationSettings(
+        const AndroidInitializationSettings('@mipmap/ic_launcher');
+    DarwinInitializationSettings ios = const DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
       requestSoundPermission: false,
@@ -38,7 +38,7 @@ class NotificationService {
   }
 
   void show() async {
-    NotificationDetails details = NotificationDetails(
+    NotificationDetails details = const NotificationDetails(
       iOS: DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
@@ -50,10 +50,17 @@ class NotificationService {
     await _local.show(0, "제목", "내용", details);
   }
 
-  void reserveNotification(DateTime date, String room_Id) async {
+  void setNotification(DateTime date, int roomId) async {
+    await _firestore.collection('reservations').doc(roomId.toString()).set(
+        Reservation(
+                user_id: [], reservation_time: date, notification_sent: false)
+            .toMap());
+  }
+
+  void reserveNotification(DateTime date, String roomId) async {
     tz.TZDateTime schedule = tz.TZDateTime.from(date, tz.local);
 
-    NotificationDetails details = NotificationDetails(
+    NotificationDetails details = const NotificationDetails(
       iOS: DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
@@ -63,33 +70,17 @@ class NotificationService {
           importance: Importance.max, priority: Priority.high),
     );
 
-    int newId = await getNextId();
-
-    await _firestore.collection('reservations').doc(newId.toString()).set(
-        Reservation(
-                user_id: FirebaseAuth.instance.currentUser!.uid,
-                room_id: room_Id,
-                reservation_time: date,
-                notification_sent: false)
-            .toMap());
+    await _firestore.collection('reservations').doc(roomId).update({
+      'user_id': FieldValue.arrayUnion([FirebaseAuth.instance.currentUser!.uid])
+    });
 
     await _local.zonedSchedule(
-        newId, "방 시작", "예약한 방이 시작되었습니다.", schedule, details,
+        int.parse(roomId), "방 시작", "예약한 방이 시작되었습니다.", schedule, details,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime);
   }
 
-  Future<int> getNextId() async {
-    QuerySnapshot snapshot = await _firestore
-        .collection('reservations')
-        .orderBy(FieldPath.documentId)
-        .get();
-
-    if (snapshot.docs.isEmpty) {
-      return 1;
-    } else {
-      int lastId = int.parse(snapshot.docs.last.id);
-      return lastId + 1;
-    }
+  void cancelNotification(String roomId) async {
+    await _local.cancel(int.parse(roomId));
   }
 }

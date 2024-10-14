@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../components/w_roomCard.dart';
-import '../s_chatScreen.dart';
 
 class ReadingScreen extends StatefulWidget {
   const ReadingScreen({super.key});

@@ -185,7 +185,10 @@ class _RoomCardState extends State<RoomCard> {
     // 스터디가 시작되지 않았다면 예약 버튼 또는 예약 취소 버튼 생성
     return widget.reservations.contains(widget.currentUserId)
         ? OutlinedButton(
-            onPressed: () => updateReservationStatus(widget.docId), // 예약 취소
+            onPressed: () async {
+              updateReservationStatus(widget.docId);
+              NotificationService.instance.cancelNotification(widget.docId);
+            }, // 예약 취소
             style: OutlinedButton.styleFrom(
               minimumSize: const Size(double.infinity, 36), // 버튼 최소 크기 설정
             ),

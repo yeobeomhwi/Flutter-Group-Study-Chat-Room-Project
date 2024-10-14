@@ -1,4 +1,3 @@
-import 'package:app_team2/Screen/s_loginScreen.dart';
 import 'package:app_team2/router/r_router.dart';
 import 'package:app_team2/services/sv_notification.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -32,7 +31,7 @@ class MyApp extends StatelessWidget {
         routerConfig: CustomRouter.router,
         title: 'alarm_app',
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          scaffoldBackgroundColor: Colors.white,
           useMaterial3: true,
         ));
   }

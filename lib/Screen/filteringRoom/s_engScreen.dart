@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../components/w_roomCard.dart';
-import '../s_chatScreen.dart';
 
 class EngScreen extends StatefulWidget {
   const EngScreen({super.key});

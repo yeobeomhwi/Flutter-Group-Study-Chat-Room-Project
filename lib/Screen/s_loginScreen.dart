@@ -1,10 +1,10 @@
-import 'package:app_team2/Screen/s_mainScreen.dart';
-import 'package:app_team2/Screen/s_registrationScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -36,34 +36,59 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('로그인')),
+      resizeToAvoidBottomInset: false,
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width * 0.1),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Image.asset('assets/images/splash/group_study.png',
+                color: const Color(0xff8A2BE2),
+                width: MediaQuery.of(context).size.width * 0.5),
+            const SizedBox(height: 20),
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text('Login',
+                    style:
+                        TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 10),
             TextField(
               controller: _emailController,
-              decoration: InputDecoration(labelText: '이메일'),
+              decoration: const InputDecoration(
+                  border: OutlineInputBorder(), labelText: "ID"),
               keyboardType: TextInputType.emailAddress,
             ),
+            const SizedBox(height: 20),
             TextField(
               controller: _passwordController,
-              decoration: InputDecoration(labelText: '비밀번호'),
+              decoration: const InputDecoration(
+                  border: OutlineInputBorder(), labelText: 'Password'),
               obscureText: true,
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: loginUser,
-              child: Text('로그인'),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: MediaQuery.of(context).size.width,
+              child: ElevatedButton(
+                onPressed: loginUser,
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xff8A2BE2)),
+                child:
+                    const Text('Login', style: TextStyle(color: Colors.white)),
+              ),
             ),
-            SizedBox(height: 20),
-            TextButton(
-              onPressed: () {
-                GoRouter.of(context).push('/Registration');
-              },
-              child: Text(
-                '회원가입',
-                style: TextStyle(color: Colors.blue),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: MediaQuery.of(context).size.width,
+              child: ElevatedButton(
+                onPressed: () {
+                  GoRouter.of(context).push('/Registration');
+                },
+                child: const Text('Sign Up',
+                    style: TextStyle(color: Color(0xff8A2BE2))),
               ),
             ),
           ],
