@@ -11,6 +11,7 @@ import 'package:app_team2/Screen/s_chatScreen.dart';
 import 'package:app_team2/Screen/s_createRoom.dart';
 import 'package:app_team2/Screen/s_loginScreen.dart';
 import 'package:app_team2/Screen/s_mainScreen.dart';
+import 'package:app_team2/Screen/s_roomListScreen.dart';
 import 'package:app_team2/Screen/s_profileScreen.dart';
 import 'package:app_team2/Screen/s_registrationScreen.dart';
 import 'package:app_team2/router/r_routerObservser.dart';
@@ -22,6 +23,7 @@ class CustomRouter {
   ], routes: [
     GoRoute(path: "/Login", builder: (context, state) => const LoginScreen()),
     GoRoute(path: "/Main", builder: (context, state) => const MainScreen()),
+    GoRoute(path: "/RoomList", builder: (context, state) => const RoomListScreen()),
     GoRoute(
         path: "/Chat",
         builder: (context, state) {
