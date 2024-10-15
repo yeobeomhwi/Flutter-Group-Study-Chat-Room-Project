@@ -17,34 +17,38 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _nameController = TextEditingController();
   bool _isLoading = false;
 
+  // Firebase Storage에 있는 기본 프로필 이미지 URL
+  final String _defaultProfileImageUrl =
+      'https://firebasestorage.googleapis.com/v0/b/elice-flutter-team2.appspot.com/o/Default-Profile.png?alt=media';
+
   List<Step> _steps() => [
-        Step(
-          title: Text('이메일 입력'),
-          content: TextField(
-            controller: _emailController,
-            decoration: InputDecoration(labelText: '이메일'),
-            keyboardType: TextInputType.emailAddress,
-          ),
-          isActive: _currentStep >= 0,
-        ),
-        Step(
-          title: Text('비밀번호 입력'),
-          content: TextField(
-            controller: _passwordController,
-            decoration: InputDecoration(labelText: '비밀번호'),
-            obscureText: true,
-          ),
-          isActive: _currentStep >= 1,
-        ),
-        Step(
-          title: Text('이름 입력'),
-          content: TextField(
-            controller: _nameController,
-            decoration: InputDecoration(labelText: '이름'),
-          ),
-          isActive: _currentStep >= 2,
-        ),
-      ];
+    Step(
+      title: Text('이메일 입력'),
+      content: TextField(
+        controller: _emailController,
+        decoration: InputDecoration(labelText: '이메일'),
+        keyboardType: TextInputType.emailAddress,
+      ),
+      isActive: _currentStep >= 0,
+    ),
+    Step(
+      title: Text('비밀번호 입력'),
+      content: TextField(
+        controller: _passwordController,
+        decoration: InputDecoration(labelText: '비밀번호'),
+        obscureText: true,
+      ),
+      isActive: _currentStep >= 1,
+    ),
+    Step(
+      title: Text('이름 입력'),
+      content: TextField(
+        controller: _nameController,
+        decoration: InputDecoration(labelText: '이름'),
+      ),
+      isActive: _currentStep >= 2,
+    ),
+  ];
 
   Future<void> registerUser() async {
     if (_emailController.text.isEmpty || !_emailController.text.contains('@')) {
@@ -69,8 +73,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
     try {
       // Firebase Auth를 사용하여 사용자 등록
-      UserCredential userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text,
         password: _passwordController.text,
       );
@@ -82,6 +85,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           .set({
         'name': _nameController.text,
         'email': _emailController.text,
+        'profileimage': _defaultProfileImageUrl, // Firebase Storage의 기본 프로필 이미지 URL 저장
       });
 
       // 스낵바 표시
@@ -112,26 +116,28 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       appBar: AppBar(title: Text('회원가입')),
       body: _isLoading
           ? Center(child: CircularProgressIndicator()) // Loading indicator
-          : Stepper(
-              currentStep: _currentStep,
-              onStepContinue: () {
-                if (_currentStep < _steps().length - 1) {
-                  setState(() {
-                    _currentStep++;
-                  });
-                } else {
-                  registerUser(); // 마지막 단계에서 회원가입 처리
-                }
-              },
-              onStepCancel: () {
-                if (_currentStep > 0) {
-                  setState(() {
-                    _currentStep--;
-                  });
-                }
-              },
-              steps: _steps(),
-            ),
+          : Center(
+            child: Stepper(
+                    currentStep: _currentStep,
+                    onStepContinue: () {
+            if (_currentStep < _steps().length - 1) {
+              setState(() {
+                _currentStep++;
+              });
+            } else {
+              registerUser(); // 마지막 단계에서 회원가입 처리
+            }
+                    },
+                    onStepCancel: () {
+            if (_currentStep > 0) {
+              setState(() {
+                _currentStep--;
+              });
+            }
+                    },
+                    steps: _steps(),
+                  ),
+          ),
     );
   }
 }

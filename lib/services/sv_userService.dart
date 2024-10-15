@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class UserService extends ChangeNotifier {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   static final instance = UserService();
 
   UserCredential? userCredential;
@@ -44,5 +46,20 @@ class UserService extends ChangeNotifier {
       userSnapshot = data;
       notifyListeners();
     });
+  }
+
+
+  // Firestore에서 현재 사용자 이름과 프로필 이미지를 가져오는 메서드
+  Future<Map<String, dynamic>> getUserNameImage() async {
+    User? user = _auth.currentUser; // 현재 로그인한 사용자
+    if (user != null) {
+      DocumentSnapshot userDoc =
+      await _firestore.collection('users').doc(user.uid).get();
+      return {
+        'name': userDoc['name'], // Firestore에서 이름 가져오기
+        'profileimage': userDoc['profileimage'], // 프로필 이미지 가져오기
+      };
+    }
+    throw Exception('사용자가 로그인되어 있지 않습니다.');
   }
 }

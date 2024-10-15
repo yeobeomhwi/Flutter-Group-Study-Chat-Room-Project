@@ -42,7 +42,7 @@ class _ChatScreenState extends State<ChatScreen> {
     print("Fetching user name for uid: $uid"); // Debugging line
     try {
       DocumentSnapshot userDoc =
-          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      await FirebaseFirestore.instance.collection('users').doc(uid).get();
       if (userDoc.exists) {
         print("User document found: ${userDoc.data()}"); // 문서 데이터 로깅
         return userDoc['name'] ?? 'Unknown User'; // 기본값 제공

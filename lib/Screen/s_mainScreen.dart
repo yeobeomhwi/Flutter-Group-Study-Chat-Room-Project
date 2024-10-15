@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:app_team2/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -22,13 +21,12 @@ class _MainScreenState extends State<MainScreen> with ScrollMixin<MainScreen> {
   // ScrollController 추가
   final ScrollController _scrollController = ScrollController();
   List<Map<String, dynamic>> _rooms = [];
-  String currentUserId = ''; // 현재 사용자 ID
-  bool _isLoading = true; // 로딩 상태 관리
+  String currentUserId = '';
+  bool _isLoading = true;
   bool _hasMore = true; // 더 불러올 수 있는지 여부
   DocumentSnapshot? _lastDocument; // 마지막 문서 저장
   List<String> dropDownList = ['제목', '내용'];
   String selected = '제목';
-
   final _searchTextController = TextEditingController();
 
   @override
@@ -305,109 +303,111 @@ class _MainScreenState extends State<MainScreen> with ScrollMixin<MainScreen> {
                 ),
               ],
             )
-          : _isLoading
-              ? const Center(
-                  child: CircularProgressIndicator()) // Loading state
-              : _rooms.isEmpty
-                  ? const Center(child: Text('방이 없습니다.')) // No rooms
-                  : Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: MediaQuery.of(context).size.width * 0.2,
-                              decoration: BoxDecoration(
-                                border: Border.all(width: 2, color: main_color),
-                              ),
-                              child: Align(
-                                alignment: Alignment.center,
-                                child: DropdownButton(
-                                    isExpanded: true,
-                                    value: selected,
-                                    items: dropDownList
-                                        .map<DropdownMenuItem<String>>(
-                                            (String value) {
-                                      return DropdownMenuItem<String>(
-                                        value: value,
-                                        child: Center(child: Text(value)),
-                                      );
-                                    }).toList(),
-                                    onChanged: (value) {
-                                      setState(() {
-                                        selected = value!;
-                                      });
-                                    },
-                                    icon: const Icon(
-                                        Icons.arrow_drop_down_rounded,
-                                        size: 20),
-                                    style: const TextStyle(
-                                        fontSize: 20, color: Colors.black),
-                                    underline: Container()),
-                              ),
-                            ),
-                            Container(
-                              width: MediaQuery.of(context).size.width * 0.6,
-                              decoration: const BoxDecoration(
-                                border: Border(
-                                    bottom:
-                                        BorderSide(width: 2, color: main_color),
-                                    right:
-                                        BorderSide(width: 2, color: main_color),
-                                    top: BorderSide(
-                                        width: 2, color: main_color)),
-                              ),
-                              child: Align(
-                                  alignment: Alignment.center,
-                                  child: TextField(
-                                      controller: _searchTextController,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          _searchTextController.text = value;
-                                        });
-                                      },
-                                      decoration: const InputDecoration(
-                                          border: UnderlineInputBorder(
-                                              borderSide: BorderSide.none),
-                                          contentPadding:
-                                              EdgeInsets.only(left: 10)))),
-                            ),
-                          ],
-                        ),
-                        const Text('최신순 정렬'),
-                        Expanded(
-                          child: ListView.builder(
-                            itemCount: _rooms.length,
-                            itemBuilder: (context, index) {
-                              final room = _rooms[index];
-                              final reservations =
-                                  room['reservations'] as List<dynamic>? ?? [];
-
-                              return RoomCard(
-                                title: room['title'],
-                                host: room['host'],
-                                content: room['content'],
-                                startTime: room['startTime'],
-                                endTime: room['endTime'],
-                                maxParticipants: room['maxParticipants'],
-                                topic: room['topic'],
-                                imageUrl: 'https://picsum.photos/200/200',
-                                reservations: reservations,
-                                startStudy: room['startStudy'],
-                                currentUserId: currentUserId,
-                                docId: room['docId'],
-                                onCardTap: () {
-                                  GoRouter.of(context).push('/Chat', extra: {
-                                    'room': room,
-                                    'roomId': room['docId']
-                                  });
-                                },
+          : Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: MediaQuery.of(context).size.width * 0.2,
+                      decoration: BoxDecoration(
+                        border: Border.all(width: 2, color: main_color),
+                      ),
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: DropdownButton(
+                            isExpanded: true,
+                            value: selected,
+                            items: dropDownList
+                                .map<DropdownMenuItem<String>>((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Center(child: Text(value)),
                               );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                selected = value!;
+                              });
                             },
-                          ),
-                        ),
-                      ],
+                            icon: const Icon(Icons.arrow_drop_down_rounded,
+                                size: 20),
+                            style: const TextStyle(
+                                fontSize: 20, color: Colors.black),
+                            underline: Container()),
+                      ),
                     ),
+                    Container(
+                      width: MediaQuery.of(context).size.width * 0.6,
+                      decoration: const BoxDecoration(
+                        border: Border(
+                            bottom: BorderSide(width: 2, color: main_color),
+                            right: BorderSide(width: 2, color: main_color),
+                            top: BorderSide(width: 2, color: main_color)),
+                      ),
+                      child: Align(
+                          alignment: Alignment.center,
+                          child: TextField(
+                              controller: _searchTextController,
+                              onChanged: (value) {
+                                setState(() {
+                                  _searchTextController.text = value;
+                                });
+                              },
+                              decoration: const InputDecoration(
+                                  border: UnderlineInputBorder(
+                                      borderSide: BorderSide.none),
+                                  contentPadding: EdgeInsets.only(left: 10)))),
+                    ),
+                  ],
+                ),
+                const Text('최신순 정렬'),
+                Expanded(
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    itemCount: _rooms.length + (_hasMore ? 1 : 0),
+                    // 더 불러올 수 있을 경우 로딩 인디케이터 추가
+                    itemBuilder: (context, index) {
+                      if (index == _rooms.length) {
+                        // 마지막 아이템에 로딩 인디케이터 표시
+                        return const Column(
+                          children: [
+                            SizedBox(height: 10),
+                            Center(child: CircularProgressIndicator())
+                          ],
+                        );
+                      }
+
+                      final room = _rooms[index];
+                      final reservations =
+                          room['reservations'] as List<dynamic>? ?? [];
+
+                      return RoomCard(
+                        title: room['title'],
+                        host: room['host'],
+                        content: room['content'],
+                        startTime: room['startTime'],
+                        endTime: room['endTime'],
+                        maxParticipants: room['maxParticipants'],
+                        topic: room['topic'],
+                        imageUrl: room['hostProfileImage'] != null &&
+                                room['hostProfileImage'].isNotEmpty
+                            ? room['hostProfileImage']
+                            : 'https://picsum.photos/200/200', // 프로필 이미지가 없을 때 기본 이미지 사용
+                        reservations: reservations,
+                        startStudy: room['startStudy'],
+                        currentUserId: currentUserId,
+                        docId: room['docId'],
+                        onCardTap: () {
+                          GoRouter.of(context).push('/Chat',
+                              extra: {'room': room, 'roomId': room['docId']});
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
       bottomNavigationBar: BottomNavigationBar(
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "홈"),
