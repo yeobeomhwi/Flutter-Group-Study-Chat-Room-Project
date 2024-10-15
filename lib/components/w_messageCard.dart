@@ -10,22 +10,25 @@ class MessageCard extends StatelessWidget {
     required this.message,
     required this.chatTime,
     required this.name,
+    required this.profileimage,
   });
 
   final Message type;
   final String message;
   final DateTime chatTime;
   final String name;
+  final String profileimage;
 
   @override
   Widget build(BuildContext context) {
     return type == Message.SEND
-        ? sendMessage(context, message, chatTime,name)
-        : receiveMessage(context, message, chatTime, name);
+        ? sendMessage(context, message, chatTime, name, profileimage)
+        : receiveMessage(context, message, chatTime, name, profileimage);
   }
 }
 
-Widget sendMessage(BuildContext context, String message, DateTime chatTime,String name) {
+Widget sendMessage(BuildContext context, String message, DateTime chatTime,
+    String name, String profileimage) {
   return Column(
     children: [
       SizedBox(
@@ -61,11 +64,13 @@ Widget sendMessage(BuildContext context, String message, DateTime chatTime,Strin
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: MediaQuery.of(context).size.width * 0.1,
-                  height: MediaQuery.of(context).size.width * 0.1,
-                  decoration: const BoxDecoration(
-                      color: Colors.grey, shape: BoxShape.circle),
+                ClipOval(
+                  child: SizedBox(
+                    width: 42.0,
+                    height: 42.0,
+                    child: Image.network(profileimage,
+                        fit: BoxFit.cover), // 이미지 불러오기
+                  ),
                 ),
                 Text(name),
               ],
@@ -78,7 +83,8 @@ Widget sendMessage(BuildContext context, String message, DateTime chatTime,Strin
   );
 }
 
-Widget receiveMessage(BuildContext context, String message, DateTime chatTime, String name) {
+Widget receiveMessage(BuildContext context, String message, DateTime chatTime,
+    String name, String profileimage) {
   return Column(
     children: [
       SizedBox(
@@ -90,11 +96,13 @@ Widget receiveMessage(BuildContext context, String message, DateTime chatTime, S
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: MediaQuery.of(context).size.width * 0.1,
-                  height: MediaQuery.of(context).size.width * 0.1,
-                  decoration: const BoxDecoration(
-                      color: Colors.grey, shape: BoxShape.circle),
+                ClipOval(
+                  child: SizedBox(
+                    width: 42.0,
+                    height: 42.0,
+                    child: Image.network(profileimage,
+                        fit: BoxFit.cover), // 이미지 불러오기
+                  ),
                 ),
                 Text(name),
               ],

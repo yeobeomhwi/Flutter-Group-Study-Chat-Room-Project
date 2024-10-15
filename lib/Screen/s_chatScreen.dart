@@ -37,23 +37,9 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  // 사용자 이름을 가져온느 함수
-  Future<String> getUserName(String uid) async {
-    print("Fetching user name for uid: $uid"); // Debugging line
-    try {
-      DocumentSnapshot userDoc =
-      await FirebaseFirestore.instance.collection('users').doc(uid).get();
-      if (userDoc.exists) {
-        print("User document found: ${userDoc.data()}"); // 문서 데이터 로깅
-        return userDoc['name'] ?? 'Unknown User'; // 기본값 제공
-      } else {
-        print("User document does not exist for uid: $uid");
-        return 'User not found';
-      }
-    } catch (e) {
-      print("Error fetching user name: $e");
-      return 'Error';
-    }
+  // 사용자 이름을 가져오는 함수
+  Stream<DocumentSnapshot> getUserData(String uid) {
+    return FirebaseFirestore.instance.collection('users').doc(uid).snapshots();
   }
 
   Widget _buildMessageList() {
@@ -85,8 +71,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 FirebaseAuth.instance.currentUser!.uid;
             final String uid = messageData['user_id'];
 
-            return FutureBuilder<String>(
-              future: getUserName(uid),
+            return StreamBuilder(
+              stream: getUserData(uid),
               builder: (context, userSnapshot) {
                 if (userSnapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
@@ -97,14 +83,12 @@ class _ChatScreenState extends State<ChatScreen> {
                   return const Text('No name found');
                 }
 
-                final userName = userSnapshot.data!;
-
                 return MessageCard(
-                  type: isSendByCurrentUser ? Message.SEND : Message.RECEIVE,
-                  message: messageData['message_text'],
-                  chatTime: messageData['sent_at'].toDate(),
-                  name: userName, // 사용자 이름을 MessageCard에 전달
-                );
+                    type: isSendByCurrentUser ? Message.SEND : Message.RECEIVE,
+                    message: messageData['message_text'],
+                    chatTime: messageData['sent_at'].toDate(),
+                    name: userSnapshot.data!['name'], // 사용자 이름을 MessageCard에 전달
+                    profileimage: userSnapshot.data!['profileimage']);
               },
             );
           },
