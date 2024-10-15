@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../components/w_roomCard.dart';
 import '../components/base_scrollMixin.dart'; // Mixin 가져오기
 
+// 방 목록 화면을 위한 Stateful 위젯
 class RoomListScreen extends StatefulWidget {
   const RoomListScreen({super.key});
 
@@ -14,63 +15,66 @@ class RoomListScreen extends StatefulWidget {
   State<RoomListScreen> createState() => _RoomListScreenState();
 }
 
+// 방 목록 화면의 상태를 관리하는 클래스
 class _RoomListScreenState extends State<RoomListScreen> with ScrollMixin<RoomListScreen> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance; // Firestore 인스턴스
+  final FirebaseAuth _auth = FirebaseAuth.instance; // Firebase 인증 인스턴스
 
-  // ScrollController 추가
+  // 스크롤 컨트롤러를 통해 스크롤 위치 관리
   final ScrollController _scrollController = ScrollController();
-  List<Map<String, dynamic>> _rooms = [];
-  String currentUserId = '';
-  bool _isLoading = true;
-  bool _hasMore = true; // 더 불러올 수 있는지 여부
-  DocumentSnapshot? _lastDocument; // 마지막 문서 저장
-  List<String> dropDownList = ['제목', '내용'];
-  String selected = '제목';
-  final _searchTextController = TextEditingController();
+  List<Map<String, dynamic>> _rooms = []; // 방 목록을 저장할 리스트
+  String currentUserId = ''; // 현재 로그인한 사용자 ID
+  bool _isLoading = true; // 로딩 상태를 표시
+  bool _hasMore = true; // 추가 데이터를 불러올 수 있는지 여부
+  DocumentSnapshot? _lastDocument; // 마지막으로 불러온 문서를 저장
+  List<String> dropDownList = ['제목', '내용']; // 검색 조건을 위한 드롭다운 리스트
+  String selected = '제목'; // 선택된 검색 기준
+  final _searchTextController = TextEditingController(); // 검색어 입력 컨트롤러
 
   @override
   void initState() {
     super.initState();
-    _getCurrentUser();
+    _getCurrentUser(); // 현재 사용자 정보를 가져옴
 
-    // 스크롤 이벤트 리스너 추가
+    // 스크롤 이벤트를 감지하여 무한 스크롤을 구현
     _scrollController.addListener(() {
-      if (_scrollController.position.pixels ==
-          _scrollController.position.maxScrollExtent) {
-        onScroll();
+      if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+        onScroll(); // 스크롤이 끝에 도달하면 추가 데이터 로드
       }
     });
 
+    // 10초마다 방 시작 시간을 체크하는 타이머 설정
     Timer.periodic(const Duration(seconds: 10), (timer) {
       _checkStartTimes();
     });
 
-    // 초기 데이터 로드
+    // 초기 방 목록 데이터를 불러옴
     _loadInitialRooms();
   }
 
+  // 현재 로그인한 사용자의 정보를 가져오는 메서드
   Future<void> _getCurrentUser() async {
     final user = _auth.currentUser;
     if (user != null) {
       setState(() {
-        currentUserId = user.uid;
+        currentUserId = user.uid; // 현재 사용자의 UID 설정
       });
     } else {
       throw Exception('사용자가 로그인되어 있지 않습니다.');
     }
   }
 
-  // 초기 방 목록을 가져오는 메서드
+  // 방 목록의 초기 데이터를 불러오는 메서드
   Future<void> _loadInitialRooms() async {
     setState(() {
-      _isLoading = true;
+      _isLoading = true; // 로딩 상태 활성화
     });
 
+    // Firestore에서 방 데이터를 불러옴
     QuerySnapshot snapshot = await _firestore
         .collection('study_rooms')
-        .orderBy('createDate', descending: true)
-        .limit(6) // 처음에 로드할 문서 수 제한
+        .orderBy('createDate', descending: true) // 최신순으로 정렬
+        .limit(6) // 처음에 불러올 문서 수
         .get();
 
     if (snapshot.docs.isNotEmpty) {
@@ -93,27 +97,28 @@ class _RoomListScreenState extends State<RoomListScreen> with ScrollMixin<RoomLi
 
       _lastDocument = snapshot.docs.last; // 마지막 문서 저장
     } else {
-      _hasMore = false; // 더 이상 불러올 문서가 없으면 false로 설정
+      _hasMore = false; // 더 이상 불러올 문서가 없을 경우
     }
 
     setState(() {
-      _isLoading = false;
+      _isLoading = false; // 로딩 상태 비활성화
     });
   }
 
-  // 더 많은 방 목록을 가져오는 메서드
+  // 추가적인 방 목록을 불러오는 메서드 (무한 스크롤)
   Future<void> _loadMoreRooms() async {
-    if (!_hasMore || _isLoading) return; // 더 이상 불러올 수 없거나 이미 로딩 중이면 종료
+    if (!_hasMore || _isLoading) return; // 더 불러올 수 없거나 로딩 중이면 종료
 
     setState(() {
       _isLoading = true;
     });
 
+    // Firestore에서 추가 방 데이터를 불러옴
     QuerySnapshot snapshot = await _firestore
         .collection('study_rooms')
         .orderBy('createDate', descending: true)
         .startAfterDocument(_lastDocument!) // 마지막 문서 이후부터 시작
-        .limit(10) // 추가로 로드할 문서 수 제한
+        .limit(10) // 추가로 불러올 문서 수
         .get();
 
     if (snapshot.docs.isNotEmpty) {
@@ -144,14 +149,15 @@ class _RoomListScreenState extends State<RoomListScreen> with ScrollMixin<RoomLi
     });
   }
 
-  // 무한 스크롤에서 호출되는 메서드
+  // 무한 스크롤에서 호출되는 메서드 (스크롤이 끝에 도달할 때)
   @override
   void onScroll() {
     if (_hasMore && !_isLoading) {
-      _loadMoreRooms(); // 추가 방 로드
+      _loadMoreRooms(); // 추가 방 목록을 불러옴
     }
   }
 
+  // 방 시작 시간을 체크하는 메서드 (10초마다 호출됨)
   Future<void> _checkStartTimes() async {
     for (var room in _rooms) {
       final startTime = room['startTime'] as DateTime;
@@ -159,11 +165,12 @@ class _RoomListScreenState extends State<RoomListScreen> with ScrollMixin<RoomLi
       final startStudy = room['startStudy'];
 
       if (!startStudy && DateTime.now().isAfter(startTime)) {
-        await _updateStartStudyStatus(docId);
+        await _updateStartStudyStatus(docId); // 시작 시간이 지나면 상태를 업데이트
       }
     }
   }
 
+  // 방의 startStudy 상태를 업데이트하는 메서드
   Future<void> _updateStartStudyStatus(String docId) async {
     try {
       await _firestore.collection('study_rooms').doc(docId).update({
@@ -174,6 +181,7 @@ class _RoomListScreenState extends State<RoomListScreen> with ScrollMixin<RoomLi
     }
   }
 
+  // 방 제목으로 검색하는 스트림을 생성하는 메서드
   Stream<List<DocumentSnapshot>> searchByNameStream(String namePrefix) {
     return _firestore
         .collection('study_rooms')
@@ -243,8 +251,15 @@ class _RoomListScreenState extends State<RoomListScreen> with ScrollMixin<RoomLi
                                       borderSide: BorderSide.none),
                                   contentPadding: EdgeInsets.only(left: 10)))),
                     ),
+                    IconButton(
+                      onPressed: () {
+                        GoRouter.of(context).push('/Filtering');
+                      },
+                      icon: const Icon(Icons.filter_alt_outlined),
+                    ),
                   ],
                 ),
+                const SizedBox(height: 10),
                 Expanded(
                   child: StreamBuilder(
                       stream: searchByNameStream(_searchTextController.text),
@@ -342,9 +357,15 @@ class _RoomListScreenState extends State<RoomListScreen> with ScrollMixin<RoomLi
                                       borderSide: BorderSide.none),
                                   contentPadding: EdgeInsets.only(left: 10)))),
                     ),
+                    IconButton(
+                      onPressed: () {
+                        GoRouter.of(context).push('/Filtering');
+                      },
+                      icon: const Icon(Icons.filter_alt_outlined),
+                    ),
                   ],
                 ),
-                const Text('최신순 정렬'),
+                const SizedBox(height: 10),
                 Expanded(
                   child: ListView.builder(
                     controller: _scrollController,

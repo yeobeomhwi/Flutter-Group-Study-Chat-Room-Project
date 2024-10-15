@@ -15,9 +15,26 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   void permissionRequest() async {
-    await [Permission.notification].request();
-  }
+    var statuses = await [
+      Permission.notification,
+      Permission.storage,
+      Permission.mediaLibrary,
+      Permission.camera,
+    ].request();
 
+    print("Storage permission status: ${statuses[Permission.storage]}");
+
+    for (var status in statuses.entries) {
+      if (status.value.isGranted) {
+        print("${status.key} 권한이 부여되었습니다.");
+      } else if (status.value.isDenied) {
+        print("${status.key} 권한이 거부되었습니다.");
+      } else if (status.value.isPermanentlyDenied) {
+        print("${status.key} 권한이 영구적으로 거부되었습니다.");
+        openAppSettings(); // 사용자가 설정으로 이동하도록 안내
+      }
+    }
+  }
   void _initializeTimezone() {
     tz.initializeTimeZones();
     tz.setLocalLocation(tz.getLocation('Asia/Seoul'));

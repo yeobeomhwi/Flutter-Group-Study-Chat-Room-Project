@@ -117,7 +117,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildInputField() {
     return Container(
       color: const Color(0xffF3EDF7),
-      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      padding: const EdgeInsets.all(10),
       child: Row(
         children: [
           GestureDetector(
@@ -129,6 +129,7 @@ class _ChatScreenState extends State<ChatScreen> {
               size: MediaQuery.of(context).size.width * 0.08,
             ),
           ),
+          const SizedBox(width: 10),
           Expanded(
             child: TextField(
               controller: _chatController,
