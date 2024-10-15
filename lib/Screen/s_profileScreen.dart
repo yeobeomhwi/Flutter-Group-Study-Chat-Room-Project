@@ -12,6 +12,7 @@ class ProfileScreen extends StatelessWidget {
     final userProvider = Provider.of<UserService>(context);
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(backgroundColor: Colors.white),
       body: SafeArea(
           child: Center(

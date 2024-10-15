@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
-import '../components/w_roomCard.dart'; // RoomCard 불러오기
+import '../components/w_roomCard.dart';
+import '../components/base_scrollMixin.dart'; // Mixin 가져오기
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -14,118 +15,174 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends State<MainScreen> with ScrollMixin<MainScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  // ScrollController 추가
+  final ScrollController _scrollController = ScrollController();
   List<Map<String, dynamic>> _rooms = [];
   String currentUserId = ''; // 현재 사용자 ID
   bool _isLoading = true; // 로딩 상태 관리
-
-  List<String> dropDownList = ['제목', '2', '3'];
+  bool _hasMore = true; // 더 불러올 수 있는지 여부
+  DocumentSnapshot? _lastDocument; // 마지막 문서 저장
+  List<String> dropDownList = ['제목', '내용'];
   String selected = '제목';
+
+  final _searchTextController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _initializeUserAndRooms(); // 사용자와 방 정보 초기화
+    _getCurrentUser();
 
-    // Timer 설정: 1분마다 _checkStartTimes 호출
+    // 스크롤 이벤트 리스너 추가
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels ==
+          _scrollController.position.maxScrollExtent) {
+        onScroll();
+      }
+    });
+
     Timer.periodic(const Duration(seconds: 10), (timer) {
       _checkStartTimes();
-      _fetchRooms();
     });
+
+    // 초기 데이터 로드
+    _loadInitialRooms();
   }
 
-  // 사용자 정보 및 방 정보 가져오는 메서드
-  Future<void> _initializeUserAndRooms() async {
-    try {
-      await _getCurrentUser(); // 현재 사용자 ID 가져오기
-      await _fetchRooms(); // 방 정보 가져오기
-      await _checkStartTimes(); // 시작 시간 체크
-    } catch (e) {
-      print('초기화 중 오류 발생: $e');
-    }
-  }
-
-  // 현재 로그인된 사용자 ID를 가져오는 메서드
   Future<void> _getCurrentUser() async {
     final user = _auth.currentUser;
     if (user != null) {
       setState(() {
-        currentUserId = user.uid; // 사용자 ID 저장
+        currentUserId = user.uid;
       });
     } else {
       throw Exception('사용자가 로그인되어 있지 않습니다.');
     }
   }
 
-// Firestore에서 방 정보 가져오는 메서드
-  Future<void> _fetchRooms() async {
-    try {
-      final snapshot = await _firestore.collection('study_rooms').get();
+  // 초기 방 목록을 가져오는 메서드
+  Future<void> _loadInitialRooms() async {
+    setState(() {
+      _isLoading = true;
+    });
 
-      setState(() {
-        _rooms = snapshot.docs.map((doc) {
-          final data = doc.data();
-          final startTime = (data['startTime'] as Timestamp).toDate();
-          final endTime = (data['endTime'] as Timestamp).toDate();
-          final createDate =
-              (data['createDate'] as Timestamp).toDate(); // createDate 가져오기
-          final reservations =
-              data['reservations'] as List<dynamic>? ?? []; // 변경된 부분
+    QuerySnapshot snapshot = await _firestore
+        .collection('study_rooms')
+        .orderBy('createDate', descending: true)
+        .limit(6) // 처음에 로드할 문서 수 제한
+        .get();
 
-          return {
-            'docId': doc.id,
-            ...data,
-            'startTime': startTime,
-            'endTime': endTime,
-            'createDate': createDate, // createDate 추가
-            'reservations': reservations, // reservations도 추가
-          };
-        }).toList();
+    if (snapshot.docs.isNotEmpty) {
+      _rooms = snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        final startTime = (data['startTime'] as Timestamp).toDate();
+        final endTime = (data['endTime'] as Timestamp).toDate();
+        final createDate = (data['createDate'] as Timestamp).toDate();
+        final reservations = data['reservations'] as List<dynamic>? ?? [];
 
-        // createDate를 기준으로 최신순 정렬
-        _rooms.sort((a, b) => b['createDate'].compareTo(a['createDate']));
-      });
-    } catch (e) {
-      print('방 목록을 불러오는 중 오류 발생: $e');
-    } finally {
-      setState(() {
-        _isLoading = false; // 로딩 완료
-      });
+        return {
+          'docId': doc.id,
+          ...data,
+          'startTime': startTime,
+          'endTime': endTime,
+          'createDate': createDate,
+          'reservations': reservations,
+        };
+      }).toList();
+
+      _lastDocument = snapshot.docs.last; // 마지막 문서 저장
+    } else {
+      _hasMore = false; // 더 이상 불러올 문서가 없으면 false로 설정
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  // 더 많은 방 목록을 가져오는 메서드
+  Future<void> _loadMoreRooms() async {
+    if (!_hasMore || _isLoading) return; // 더 이상 불러올 수 없거나 이미 로딩 중이면 종료
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    QuerySnapshot snapshot = await _firestore
+        .collection('study_rooms')
+        .orderBy('createDate', descending: true)
+        .startAfterDocument(_lastDocument!) // 마지막 문서 이후부터 시작
+        .limit(10) // 추가로 로드할 문서 수 제한
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      _rooms.addAll(snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        final startTime = (data['startTime'] as Timestamp).toDate();
+        final endTime = (data['endTime'] as Timestamp).toDate();
+        final createDate = (data['createDate'] as Timestamp).toDate();
+        final reservations = data['reservations'] as List<dynamic>? ?? [];
+
+        return {
+          'docId': doc.id,
+          ...data,
+          'startTime': startTime,
+          'endTime': endTime,
+          'createDate': createDate,
+          'reservations': reservations,
+        };
+      }).toList());
+
+      _lastDocument = snapshot.docs.last; // 마지막 문서 업데이트
+    } else {
+      _hasMore = false; // 더 이상 불러올 문서가 없으면 false로 설정
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  // 무한 스크롤에서 호출되는 메서드
+  @override
+  void onScroll() {
+    if (_hasMore && !_isLoading) {
+      _loadMoreRooms(); // 추가 방 로드
     }
   }
 
-  // 시작 시간이 되었는지 체크하여 startStudy 업데이트
   Future<void> _checkStartTimes() async {
-    print('StartStudy 작동중');
     for (var room in _rooms) {
       final startTime = room['startTime'] as DateTime;
       final docId = room['docId'];
       final startStudy = room['startStudy'];
 
-      // 현재 시간과 startTime 비교, startStudy가 false일 때만 진행
       if (!startStudy && DateTime.now().isAfter(startTime)) {
-        print('작업중: $docId 방의 시작 시간이 지났습니다.');
-        await _updateStartStudyStatus(docId); // 상태 업데이트는 비동기 처리
+        await _updateStartStudyStatus(docId);
       }
     }
   }
 
-  // Firestore에서 startStudy 상태를 true로 업데이트하는 메서드
   Future<void> _updateStartStudyStatus(String docId) async {
     try {
       await _firestore.collection('study_rooms').doc(docId).update({
         'startStudy': true,
       });
-      print('startStudy 상태 업데이트 완료');
-
-      // 방 목록 새로 고침
-      await _fetchRooms(); // 상태 업데이트 후 목록 새로 고침
     } catch (e) {
       print('startStudy 상태 업데이트 중 오류 발생: $e');
     }
+  }
+
+  Stream<List<DocumentSnapshot>> searchByNameStream(String namePrefix) {
+    return _firestore
+        .collection('study_rooms')
+        .where('title', isGreaterThanOrEqualTo: namePrefix)
+        .where('title', isLessThanOrEqualTo: '$namePrefix\uf8ff')
+        .snapshots()
+        .map((snapshot) => snapshot.docs);
   }
 
   @override
@@ -148,96 +205,209 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator()) // Loading state
-          : _rooms.isEmpty
-              ? const Center(child: Text('방이 없습니다.')) // No rooms
-              : Column(
+      body: _searchTextController.text.isNotEmpty
+          ? Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: MediaQuery.of(context).size.width * 0.2,
-                          decoration: BoxDecoration(
-                            border: Border.all(width: 2, color: main_color),
-                          ),
-                          child: Align(
-                            alignment: Alignment.center,
-                            child: DropdownButton(
-                                value: selected,
-                                items: dropDownList
-                                    .map<DropdownMenuItem<String>>(
-                                        (String value) {
-                                  return DropdownMenuItem<String>(
-                                    value: value,
-                                    child: Text(value),
-                                  );
-                                }).toList(),
-                                onChanged: (value) {
-                                  setState(() {
-                                    selected = value!;
-                                  });
-                                },
-                                icon: const Icon(Icons.arrow_drop_down_rounded,
-                                    size: 30),
-                                style: const TextStyle(
-                                    fontSize: 30, color: Colors.black),
-                                underline: Container()),
-                          ),
-                        ),
-                        Container(
-                          width: MediaQuery.of(context).size.width * 0.6,
-                          decoration: const BoxDecoration(
-                            border: Border(
-                                bottom: BorderSide(width: 2, color: main_color),
-                                right: BorderSide(width: 2, color: main_color),
-                                top: BorderSide(width: 2, color: main_color)),
-                          ),
-                          child: const Align(
-                              alignment: Alignment.center,
-                              child: TextField(
-                                  decoration: InputDecoration(
-                                      border: UnderlineInputBorder(
-                                          borderSide: BorderSide.none)))),
-                        ),
-                      ],
-                    ),
-                    const Text('최신순 정렬'),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: _rooms.length,
-                        itemBuilder: (context, index) {
-                          final room = _rooms[index];
-                          final reservations =
-                              room['reservations'] as List<dynamic>? ?? [];
-
-                          return RoomCard(
-                            title: room['title'],
-                            host: room['host'],
-                            content: room['content'],
-                            startTime: room['startTime'],
-                            endTime: room['endTime'],
-                            maxParticipants: room['maxParticipants'],
-                            topic: room['topic'],
-                            imageUrl: 'https://picsum.photos/200/200',
-                            // Temporary image URL
-                            reservations: reservations,
-                            startStudy: room['startStudy'],
-                            currentUserId: currentUserId,
-                            docId: room['docId'],
-                            onCardTap: () {
-                              GoRouter.of(context).push('/Chat', extra: {
-                                'room': room,
-                                'roomId': room['docId']
+                    Container(
+                      width: MediaQuery.of(context).size.width * 0.2,
+                      decoration: BoxDecoration(
+                        border: Border.all(width: 2, color: main_color),
+                      ),
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: DropdownButton(
+                            isExpanded: true,
+                            value: selected,
+                            items: dropDownList
+                                .map<DropdownMenuItem<String>>((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Center(child: Text(value)),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                selected = value!;
                               });
                             },
-                          );
-                        },
+                            icon: const Icon(Icons.arrow_drop_down_rounded,
+                                size: 20),
+                            style: const TextStyle(
+                                fontSize: 20, color: Colors.black),
+                            underline: Container()),
                       ),
+                    ),
+                    Container(
+                      width: MediaQuery.of(context).size.width * 0.6,
+                      decoration: const BoxDecoration(
+                        border: Border(
+                            bottom: BorderSide(width: 2, color: main_color),
+                            right: BorderSide(width: 2, color: main_color),
+                            top: BorderSide(width: 2, color: main_color)),
+                      ),
+                      child: Align(
+                          alignment: Alignment.center,
+                          child: TextField(
+                              controller: _searchTextController,
+                              onChanged: (value) {
+                                setState(() {
+                                  _searchTextController.text = value;
+                                });
+                              },
+                              decoration: const InputDecoration(
+                                  border: UnderlineInputBorder(
+                                      borderSide: BorderSide.none),
+                                  contentPadding: EdgeInsets.only(left: 10)))),
                     ),
                   ],
                 ),
+                Expanded(
+                  child: StreamBuilder(
+                      stream: searchByNameStream(_searchTextController.text),
+                      builder: (context, snapshot) {
+                        return ListView.builder(
+                          itemCount: snapshot.data?.length,
+                          itemBuilder: (context, index) {
+                            if (!snapshot.hasData) {
+                              return const CircularProgressIndicator();
+                            }
+                            final room = snapshot.data![index];
+                            final reservations =
+                                room['reservations'] as List<dynamic>? ?? [];
+
+                            return RoomCard(
+                              title: room['title'],
+                              host: room['host'],
+                              content: room['content'],
+                              startTime:
+                                  (room['startTime'] as Timestamp).toDate(),
+                              endTime: (room['endTime'] as Timestamp).toDate(),
+                              maxParticipants: room['maxParticipants'],
+                              topic: room['topic'],
+                              imageUrl: 'https://picsum.photos/200/200',
+                              reservations: reservations,
+                              startStudy: room['startStudy'],
+                              currentUserId: currentUserId,
+                              docId: room['room_id'].toString(),
+                              onCardTap: () {
+                                GoRouter.of(context).push('/Chat', extra: {
+                                  'room': room,
+                                  'roomId': room['docId']
+                                });
+                              },
+                            );
+                          },
+                        );
+                      }),
+                ),
+              ],
+            )
+          : _isLoading
+              ? const Center(
+                  child: CircularProgressIndicator()) // Loading state
+              : _rooms.isEmpty
+                  ? const Center(child: Text('방이 없습니다.')) // No rooms
+                  : Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: MediaQuery.of(context).size.width * 0.2,
+                              decoration: BoxDecoration(
+                                border: Border.all(width: 2, color: main_color),
+                              ),
+                              child: Align(
+                                alignment: Alignment.center,
+                                child: DropdownButton(
+                                    isExpanded: true,
+                                    value: selected,
+                                    items: dropDownList
+                                        .map<DropdownMenuItem<String>>(
+                                            (String value) {
+                                      return DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Center(child: Text(value)),
+                                      );
+                                    }).toList(),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        selected = value!;
+                                      });
+                                    },
+                                    icon: const Icon(
+                                        Icons.arrow_drop_down_rounded,
+                                        size: 20),
+                                    style: const TextStyle(
+                                        fontSize: 20, color: Colors.black),
+                                    underline: Container()),
+                              ),
+                            ),
+                            Container(
+                              width: MediaQuery.of(context).size.width * 0.6,
+                              decoration: const BoxDecoration(
+                                border: Border(
+                                    bottom:
+                                        BorderSide(width: 2, color: main_color),
+                                    right:
+                                        BorderSide(width: 2, color: main_color),
+                                    top: BorderSide(
+                                        width: 2, color: main_color)),
+                              ),
+                              child: Align(
+                                  alignment: Alignment.center,
+                                  child: TextField(
+                                      controller: _searchTextController,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _searchTextController.text = value;
+                                        });
+                                      },
+                                      decoration: const InputDecoration(
+                                          border: UnderlineInputBorder(
+                                              borderSide: BorderSide.none),
+                                          contentPadding:
+                                              EdgeInsets.only(left: 10)))),
+                            ),
+                          ],
+                        ),
+                        const Text('최신순 정렬'),
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: _rooms.length,
+                            itemBuilder: (context, index) {
+                              final room = _rooms[index];
+                              final reservations =
+                                  room['reservations'] as List<dynamic>? ?? [];
+
+                              return RoomCard(
+                                title: room['title'],
+                                host: room['host'],
+                                content: room['content'],
+                                startTime: room['startTime'],
+                                endTime: room['endTime'],
+                                maxParticipants: room['maxParticipants'],
+                                topic: room['topic'],
+                                imageUrl: 'https://picsum.photos/200/200',
+                                reservations: reservations,
+                                startStudy: room['startStudy'],
+                                currentUserId: currentUserId,
+                                docId: room['docId'],
+                                onCardTap: () {
+                                  GoRouter.of(context).push('/Chat', extra: {
+                                    'room': room,
+                                    'roomId': room['docId']
+                                  });
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
       bottomNavigationBar: BottomNavigationBar(
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "홈"),
@@ -249,8 +419,14 @@ class _MainScreenState extends State<MainScreen> {
         onPressed: () {
           GoRouter.of(context).push('/CreateRoom');
         },
-        child: const Icon(Icons.add), // 방 추가 버튼
+        child: const Icon(Icons.add),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 }
