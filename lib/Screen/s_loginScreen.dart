@@ -1,6 +1,8 @@
+import 'package:app_team2/services/sv_user.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,26 +14,6 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-
-  Future<void> loginUser() async {
-    try {
-      UserCredential userCredential =
-          await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text,
-        password: _passwordController.text,
-      );
-
-      // 로그인 성공 후의 동작
-      print("로그인 성공: ${userCredential.user!.email}");
-      GoRouter.of(context).pushReplacement('/Main');
-    } on FirebaseAuthException catch (e) {
-      // 에러 메시지 출력
-      print("로그인 오류: ${e.message}");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("로그인 오류: ${e.message}")),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +55,14 @@ class _LoginScreenState extends State<LoginScreen> {
             SizedBox(
               width: MediaQuery.of(context).size.width,
               child: ElevatedButton(
-                onPressed: loginUser,
+                onPressed: () async {
+                  await UserService.instance.loginUser(
+                      _emailController.text, _passwordController.text);
+                  Provider.of<UserService>(context, listen: false)
+                      .listenUserData(
+                          UserService.instance.userCredential!.user!.uid);
+                  GoRouter.of(context).pushReplacement('/Main');
+                },
                 style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xff8A2BE2)),
                 child:

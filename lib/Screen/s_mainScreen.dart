@@ -137,7 +137,9 @@ class _MainScreenState extends State<MainScreen> {
         title: const Center(child: Text('스터디 목록')),
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              GoRouter.of(context).push('/Profile');
+            },
             icon: const Icon(Icons.account_circle_outlined),
           ),
         ],

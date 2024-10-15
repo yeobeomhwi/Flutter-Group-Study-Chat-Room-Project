@@ -11,6 +11,7 @@ import 'package:app_team2/Screen/s_chatScreen.dart';
 import 'package:app_team2/Screen/s_createRoom.dart';
 import 'package:app_team2/Screen/s_loginScreen.dart';
 import 'package:app_team2/Screen/s_mainScreen.dart';
+import 'package:app_team2/Screen/s_profileScreen.dart';
 import 'package:app_team2/Screen/s_registrationScreen.dart';
 import 'package:app_team2/router/r_routerObservser.dart';
 import 'package:go_router/go_router.dart';
@@ -19,7 +20,7 @@ class CustomRouter {
   static GoRouter router = GoRouter(initialLocation: "/Login", observers: [
     RouterObserver()
   ], routes: [
-    GoRoute(path: "/Login", builder: (context, state) => LoginScreen()),
+    GoRoute(path: "/Login", builder: (context, state) => const LoginScreen()),
     GoRoute(path: "/Main", builder: (context, state) => const MainScreen()),
     GoRoute(
         path: "/Chat",
@@ -32,8 +33,10 @@ class CustomRouter {
         path: "/CreateRoom",
         builder: (context, state) => const CreateRoomPage()),
     GoRoute(
+        path: "/Profile", builder: (context, state) => const ProfileScreen()),
+    GoRoute(
         path: "/Registration",
-        builder: (context, state) => RegistrationScreen()),
+        builder: (context, state) => const RegistrationScreen()),
     GoRoute(
         path: "/Certificate",
         builder: (context, state) => const CertificateScreen()),

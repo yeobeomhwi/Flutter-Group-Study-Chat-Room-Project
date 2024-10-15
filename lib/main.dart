@@ -1,14 +1,19 @@
 import 'package:app_team2/router/r_router.dart';
 import 'package:app_team2/services/sv_notification.dart';
+import 'package:app_team2/services/sv_user.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp());
+  runApp(ChangeNotifierProvider(
+    create: (context) => UserService(),
+    child: const MyApp(),
+  ));
   Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   ).then((_) {
