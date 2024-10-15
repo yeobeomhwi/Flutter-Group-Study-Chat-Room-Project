@@ -6,13 +6,16 @@ class CreateRoom {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // Firestore에서 현재 사용자 이름을 가져오는 메서드
-  Future<String> getUserName() async {
+  // Firestore에서 현재 사용자 이름과 프로필 이미지를 가져오는 메서드
+  Future<Map<String, dynamic>> getUserInfo() async {
     User? user = _auth.currentUser; // 현재 로그인한 사용자
     if (user != null) {
       DocumentSnapshot userDoc =
-          await _firestore.collection('users').doc(user.uid).get();
-      return userDoc['name']; // Firestore에서 이름 가져오기
+      await _firestore.collection('users').doc(user.uid).get();
+      return {
+        'name': userDoc['name'], // Firestore에서 이름 가져오기
+        'profileimage': userDoc['profileimage'] // 프로필 이미지 가져오기
+      };
     }
     throw Exception('사용자가 로그인되어 있지 않습니다.');
   }
@@ -20,16 +23,12 @@ class CreateRoom {
   // Firestore에서 다음 ID를 가져오는 메서드
   Future<int> getNextId() async {
     QuerySnapshot snapshot =
-        await _firestore.collection('study_rooms').orderBy('room_id').get();
+    await _firestore.collection('study_rooms').orderBy('room_id').get();
 
     if (snapshot.docs.isEmpty) {
       return 1; // 처음 문서일 경우
     } else {
-      for (int i = 0; i < snapshot.docs.length; i++) {
-        print(snapshot.docs[i].data());
-      }
       int lastId = int.parse(snapshot.docs.last.id);
-      print(lastId);
       return lastId + 1; // 마지막 ID에 1을 더함
     }
   }
@@ -45,9 +44,11 @@ class CreateRoom {
     required bool startStudy,
     required List<dynamic> reservations, // 예약을 String array로 변경
   }) async {
-    // 사용자 이름 가져오기
-    String host = await getUserName(); // 이름 가져오기
-    // String currentUserId = _auth.currentUser!.uid; // 현재 사용자 ID 가져오기
+    // 사용자 정보 (이름, 프로필 이미지) 가져오기
+    Map<String, dynamic> userInfo = await getUserInfo();
+    String host = userInfo['name']; // 이름
+    String profileImageUrl = userInfo['profileimage']; // 프로필 이미지 URL
+
     int newId = await getNextId();
 
     // 방 정보 객체 생성
@@ -58,11 +59,12 @@ class CreateRoom {
       'content': content,
       'maxParticipants': maxParticipants,
       'host': host, // 방 생성자 이름 추가
+      'hostProfileImage': profileImageUrl, // 방 생성자의 프로필 이미지 추가
       'reservations': reservations, // String array로 설정
       'startStudy': startStudy,
       'startTime': startTime,
       'endTime': endTime,
-      'createDate': DateTime.now()
+      'createDate': DateTime.now(),
     };
 
     // Firestore에 방 데이터 저장
@@ -72,9 +74,6 @@ class CreateRoom {
           .collection('study_rooms')
           .doc(newId.toString())
           .set(roomData);
-
-      // 사용자의 이름을 chatData에 넣기
-      // String userName = await getUserName(); // 사용자 이름 가져오기
 
       // 방 생성 후 채팅 데이터도 동일한 ID로 저장
       List<Map<String, dynamic>> chatData = [];

@@ -183,7 +183,9 @@ class _MainScreenState extends State<MainScreen> with ScrollMixin<MainScreen> {
         title: const Center(child: Text('스터디 목록')),
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              GoRouter.of(context).push('/Profile');
+            },
             icon: const Icon(Icons.account_circle_outlined),
           ),
         ],
@@ -219,7 +221,9 @@ class _MainScreenState extends State<MainScreen> with ScrollMixin<MainScreen> {
                   endTime: room['endTime'],
                   maxParticipants: room['maxParticipants'],
                   topic: room['topic'],
-                  imageUrl: 'https://picsum.photos/200/200',
+                  imageUrl: room['hostProfileImage'] != null && room['hostProfileImage'].isNotEmpty
+                      ? room['hostProfileImage']
+                      : 'https://picsum.photos/200/200', // 프로필 이미지가 없을 때 기본 이미지 사용
                   reservations: reservations,
                   startStudy: room['startStudy'],
                   currentUserId: currentUserId,
