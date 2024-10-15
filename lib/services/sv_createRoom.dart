@@ -1,3 +1,4 @@
+import 'package:app_team2/services/sv_userService.dart';
 import 'package:app_team2/services/sv_notification.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -5,20 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 class CreateRoom {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-
-  // Firestore에서 현재 사용자 이름과 프로필 이미지를 가져오는 메서드
-  Future<Map<String, dynamic>> getUserInfo() async {
-    User? user = _auth.currentUser; // 현재 로그인한 사용자
-    if (user != null) {
-      DocumentSnapshot userDoc =
-      await _firestore.collection('users').doc(user.uid).get();
-      return {
-        'name': userDoc['name'], // Firestore에서 이름 가져오기
-        'profileimage': userDoc['profileimage'] // 프로필 이미지 가져오기
-      };
-    }
-    throw Exception('사용자가 로그인되어 있지 않습니다.');
-  }
+  final UserService _userService = UserService(); // UserService 인스턴스 생성
 
   // Firestore에서 다음 ID를 가져오는 메서드
   Future<int> getNextId() async {
@@ -45,7 +33,7 @@ class CreateRoom {
     required List<dynamic> reservations, // 예약을 String array로 변경
   }) async {
     // 사용자 정보 (이름, 프로필 이미지) 가져오기
-    Map<String, dynamic> userInfo = await getUserInfo();
+    Map<String, dynamic> userInfo = await _userService.getUserNameImage();
     String host = userInfo['name']; // 이름
     String profileImageUrl = userInfo['profileimage']; // 프로필 이미지 URL
 

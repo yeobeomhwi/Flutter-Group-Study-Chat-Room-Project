@@ -1,6 +1,6 @@
 import 'package:app_team2/router/r_router.dart';
 import 'package:app_team2/services/sv_notification.dart';
-import 'package:app_team2/services/sv_user.dart';
+import 'package:app_team2/services/sv_userService.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
