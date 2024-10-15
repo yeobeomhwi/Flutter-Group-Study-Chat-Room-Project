@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app_team2/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -20,6 +21,9 @@ class _MainScreenState extends State<MainScreen> {
   List<Map<String, dynamic>> _rooms = [];
   String currentUserId = ''; // 현재 사용자 ID
   bool _isLoading = true; // 로딩 상태 관리
+
+  List<String> dropDownList = ['제목', '2', '3'];
+  String selected = '제목';
 
   @override
   void initState() {
@@ -150,6 +154,55 @@ class _MainScreenState extends State<MainScreen> {
               ? const Center(child: Text('방이 없습니다.')) // No rooms
               : Column(
                   children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: MediaQuery.of(context).size.width * 0.2,
+                          decoration: BoxDecoration(
+                            border: Border.all(width: 2, color: main_color),
+                          ),
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: DropdownButton(
+                                value: selected,
+                                items: dropDownList
+                                    .map<DropdownMenuItem<String>>(
+                                        (String value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Text(value),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    selected = value!;
+                                  });
+                                },
+                                icon: const Icon(Icons.arrow_drop_down_rounded,
+                                    size: 30),
+                                style: const TextStyle(
+                                    fontSize: 30, color: Colors.black),
+                                underline: Container()),
+                          ),
+                        ),
+                        Container(
+                          width: MediaQuery.of(context).size.width * 0.6,
+                          decoration: const BoxDecoration(
+                            border: Border(
+                                bottom: BorderSide(width: 2, color: main_color),
+                                right: BorderSide(width: 2, color: main_color),
+                                top: BorderSide(width: 2, color: main_color)),
+                          ),
+                          child: const Align(
+                              alignment: Alignment.center,
+                              child: TextField(
+                                  decoration: InputDecoration(
+                                      border: UnderlineInputBorder(
+                                          borderSide: BorderSide.none)))),
+                        ),
+                      ],
+                    ),
                     const Text('최신순 정렬'),
                     Expanded(
                       child: ListView.builder(
