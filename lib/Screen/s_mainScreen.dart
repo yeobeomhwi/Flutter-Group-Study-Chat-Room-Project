@@ -20,6 +20,8 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        centerTitle: true,
         title: Center(
           child: Text(
             _currentIndex == 0 ? '스터디 방 목록' : '설정',

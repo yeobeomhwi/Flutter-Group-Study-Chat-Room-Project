@@ -1,4 +1,5 @@
 import 'package:app_team2/router/r_router.dart';
+import 'package:app_team2/services/sv_chatService.dart';
 import 'package:app_team2/services/sv_notification.dart';
 import 'package:app_team2/services/sv_userService.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -10,8 +11,15 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(ChangeNotifierProvider(
-    create: (context) => UserService(),
+  runApp(MultiProvider(
+    providers: [
+      ChangeNotifierProvider(
+        create: (context) => UserService(),
+      ),
+      ChangeNotifierProvider(
+        create: (context) => ChatService(),
+      ),
+    ],
     child: const MyApp(),
   ));
   Firebase.initializeApp(

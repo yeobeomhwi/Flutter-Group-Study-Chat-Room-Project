@@ -4,7 +4,20 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class ChatService extends ChangeNotifier {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static final instance = ChatService();
+  DocumentSnapshot? chatSnapshot;
+
+  Stream<DocumentSnapshot> fetchChatData(String roomId) {
+    return _firestore.collection('chats').doc(roomId).snapshots();
+  }
+
+  void listenUserData(String roomId) {
+    fetchChatData(roomId).listen((data) {
+      chatSnapshot = data;
+      notifyListeners();
+    });
+  }
 
   void sendMessage(String roomId, String message) async {
     CollectionReference chatsSnapshot =

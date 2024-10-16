@@ -19,15 +19,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   void initState() {
-    _fetchUserData(); //
     super.initState();
+    _fetchUserData(); // 사용자 데이터 가져오기
   }
 
   // Firestore에서 사용자 이름과 프로필 이미지 가져오기
   Future<void> _fetchUserData() async {
     try {
       final userData =
-      await _userService.getUserNameImage(); // Firestore에서 데이터 가져오기
+          await _userService.getUserNameImage(); // Firestore에서 데이터 가져오기
       setState(() {
         _profileImageUrl = userData['profileimage']; // 프로필 이미지 URL 저장
         _userName = userData['name']; // 사용자 이름 저장
@@ -51,16 +51,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ClipOval(
                 child: _profileImageUrl != null // 이미지 URL이 null이 아니면 출력
                     ? Image.network(
-                  _profileImageUrl!,
-                  width: MediaQuery.of(context).size.width * 0.5,
-                  height: MediaQuery.of(context).size.width * 0.5, // 높이 추가
-                  fit: BoxFit.cover, // 이미지 비율 유지
-                )
-                    : Icon(Icons.person, size: 100), // null인 경우 기본 아이콘 표시
+                        _profileImageUrl!,
+                        width: MediaQuery.of(context).size.width * 0.5,
+                        height:
+                            MediaQuery.of(context).size.width * 0.5, // 높이 추가
+                        fit: BoxFit.cover, // 이미지 비율 유지
+                      )
+                    : Image.asset(
+                        'assets/default_profile.png', // 기본 이미지
+                        width: MediaQuery.of(context).size.width * 0.5,
+                        height:
+                            MediaQuery.of(context).size.width * 0.5, // 높이 추가
+                        fit: BoxFit.cover, // 이미지 비율 유지
+                      ),
               ),
+
+              const SizedBox(height: 10),
               // 사용자 이름 표시
-              Text(_userName ?? 'Loading...'),
-              const Text('예약한 방 목록'),
+              Text(_userName ?? 'Loading...',
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 30),
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.5,
                 child: ElevatedButton(
@@ -72,6 +83,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       style: TextStyle(color: Colors.white)),
                 ),
               ),
+              const SizedBox(height: 10),
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.5,
                 child: ElevatedButton(
@@ -85,6 +97,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       style: TextStyle(color: Colors.white)),
                 ),
               ),
+              const SizedBox(height: 10),
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.5,
                 child: ElevatedButton(

@@ -61,7 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Provider.of<UserService>(context, listen: false)
                       .listenUserData(
                           UserService.instance.userCredential!.user!.uid);
-                  GoRouter.of(context).pushReplacement('/Main');
+                  GoRouter.of(context).go('/Main');
                 },
                 style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xff8A2BE2)),

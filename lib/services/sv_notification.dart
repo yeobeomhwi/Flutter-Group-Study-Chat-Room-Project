@@ -35,6 +35,7 @@ class NotificationService {
       }
     }
   }
+
   void _initializeTimezone() {
     tz.initializeTimeZones();
     tz.setLocalLocation(tz.getLocation('Asia/Seoul'));
@@ -52,19 +53,6 @@ class NotificationService {
         InitializationSettings(android: android, iOS: ios);
     await _local.initialize(settings);
     _initializeTimezone();
-  }
-
-  void show() async {
-    NotificationDetails details = const NotificationDetails(
-      iOS: DarwinNotificationDetails(
-        presentAlert: true,
-        presentBadge: true,
-        presentSound: true,
-      ),
-      android: AndroidNotificationDetails("show_test", "show_test",
-          importance: Importance.max, priority: Priority.high),
-    );
-    await _local.show(0, "제목", "내용", details);
   }
 
   void setNotification(DateTime date, int roomId) async {

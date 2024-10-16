@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'package:app_team2/services/sv_chatService.dart';
 import 'package:app_team2/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../components/w_roomCard.dart';
 import '../components/base_scrollMixin.dart'; // Mixin 가져오기
 
@@ -16,8 +18,10 @@ class RoomListScreen extends StatefulWidget {
 }
 
 // 방 목록 화면의 상태를 관리하는 클래스
-class _RoomListScreenState extends State<RoomListScreen> with ScrollMixin<RoomListScreen> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance; // Firestore 인스턴스
+class _RoomListScreenState extends State<RoomListScreen>
+    with ScrollMixin<RoomListScreen> {
+  final FirebaseFirestore _firestore =
+      FirebaseFirestore.instance; // Firestore 인스턴스
   final FirebaseAuth _auth = FirebaseAuth.instance; // Firebase 인증 인스턴스
 
   // 스크롤 컨트롤러를 통해 스크롤 위치 관리
@@ -38,7 +42,8 @@ class _RoomListScreenState extends State<RoomListScreen> with ScrollMixin<RoomLi
 
     // 스크롤 이벤트를 감지하여 무한 스크롤을 구현
     _scrollController.addListener(() {
-      if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+      if (_scrollController.position.pixels ==
+          _scrollController.position.maxScrollExtent) {
         onScroll(); // 스크롤이 끝에 도달하면 추가 데이터 로드
       }
     });
@@ -289,6 +294,9 @@ class _RoomListScreenState extends State<RoomListScreen> with ScrollMixin<RoomLi
                               currentUserId: currentUserId,
                               docId: room['room_id'].toString(),
                               onCardTap: () {
+                                print(room['docId']);
+                                Provider.of<ChatService>(context, listen: false)
+                                    .listenUserData(room['docId']);
                                 GoRouter.of(context).push('/Chat', extra: {
                                   'room': room,
                                   'roomId': room['docId']
@@ -403,6 +411,8 @@ class _RoomListScreenState extends State<RoomListScreen> with ScrollMixin<RoomLi
                         currentUserId: currentUserId,
                         docId: room['docId'],
                         onCardTap: () {
+                          Provider.of<ChatService>(context, listen: false)
+                              .listenUserData(room['docId']);
                           GoRouter.of(context).push('/Chat',
                               extra: {'room': room, 'roomId': room['docId']});
                         },
