@@ -7,7 +7,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../components/w_roomCard.dart';
-import '../components/base_scrollMixin.dart'; // Mixin 가져오기
+import '../components/base_scrollMixin.dart';
+import '../services/sv_userService.dart'; // Mixin 가져오기
 
 // 방 목록 화면을 위한 Stateful 위젯
 class RoomListScreen extends StatefulWidget {
@@ -34,6 +35,8 @@ class _RoomListScreenState extends State<RoomListScreen>
   List<String> dropDownList = ['제목', '내용']; // 검색 조건을 위한 드롭다운 리스트
   String selected = '제목'; // 선택된 검색 기준
   final _searchTextController = TextEditingController(); // 검색어 입력 컨트롤러
+  final UserService _userService = UserService();
+
 
   @override
   void initState() {

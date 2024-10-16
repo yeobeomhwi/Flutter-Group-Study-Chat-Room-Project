@@ -12,7 +12,7 @@ class UserService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
   static final instance = UserService();
-
+  String currentUserId = '';
   UserCredential? userCredential;
   DocumentSnapshot? userSnapshot;
 
@@ -42,6 +42,16 @@ class UserService extends ChangeNotifier {
     }
   }
 
+  // 현재 로그인한 사용자의 정보를 가져오는 메서드
+  Future<void> getCurrentUser() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      currentUserId = user.uid; // 현재 사용자의 UID 설정
+    } else {
+      throw Exception('사용자가 로그인되어 있지 않습니다.');
+    }
+  }
+
   Stream<DocumentSnapshot> fetchUserData(String uid) {
     return _firestore.collection('users').doc(uid).snapshots();
   }
@@ -62,6 +72,7 @@ class UserService extends ChangeNotifier {
       return {
         'name': userDoc['name'], // Firestore에서 이름 가져오기
         'profileimage': userDoc['profileimage'], // 프로필 이미지 가져오기
+        'participationList': userDoc['participationList'],
       };
     }
     throw Exception('사용자가 로그인되어 있지 않습니다.');

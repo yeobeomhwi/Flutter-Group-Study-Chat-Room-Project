@@ -20,7 +20,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   // Firebase Storage에 있는 기본 프로필 이미지 URL
   final String _defaultProfileImageUrl =
-      'https://firebasestorage.googleapis.com/v0/b/elice-flutter-team2.appspot.com/o/Default-Profile.png?alt=media';
+      'https://firebasestorage.googleapis.com/v0/b/elice-flutter-team2.appspot.com/o/default_profile.png?alt=media';
 
   List<Step> _steps() => [
         Step(
