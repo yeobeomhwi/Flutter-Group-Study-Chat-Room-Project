@@ -23,7 +23,8 @@ class CustomRouter {
   ], routes: [
     GoRoute(path: "/Login", builder: (context, state) => const LoginScreen()),
     GoRoute(path: "/Main", builder: (context, state) => const MainScreen()),
-    GoRoute(path: "/RoomList", builder: (context, state) => const RoomListScreen()),
+    GoRoute(
+        path: "/RoomList", builder: (context, state) => const RoomListScreen()),
     GoRoute(
         path: "/Chat",
         builder: (context, state) {

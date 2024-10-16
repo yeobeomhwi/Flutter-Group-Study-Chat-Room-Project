@@ -22,7 +22,11 @@ class _MainScreenState extends State<MainScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         centerTitle: true,
-        title: const Center(child: Text('스터디 방 목록')),
+        title: Center(
+          child: Text(
+            _currentIndex == 0 ? '스터디 방 목록' : '설정',
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(10.0),

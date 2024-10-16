@@ -43,14 +43,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      appBar: AppBar(backgroundColor: Colors.white),
       body: SafeArea(
         child: Center(
           child: Column(
             children: [
               // 프로필 이미지를 ClipOval로 감싸서 원형으로 만들기
               ClipOval(
-                child: _profileImageUrl != null
+                child: _profileImageUrl != null // 이미지 URL이 null이 아니면 출력
                     ? Image.network(
                         _profileImageUrl!,
                         width: MediaQuery.of(context).size.width * 0.5,
@@ -66,6 +65,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         fit: BoxFit.cover, // 이미지 비율 유지
                       ),
               ),
+
               const SizedBox(height: 10),
               // 사용자 이름 표시
               Text(_userName ?? 'Loading...',

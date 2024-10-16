@@ -86,6 +86,14 @@ class NotificationService {
   }
 
   void cancelNotification(String roomId) async {
-    await _local.cancel(int.parse(roomId));
+    try {
+      await _local.cancel(int.parse(roomId));
+
+      await _firestore.collection('reservations').doc(roomId).update({
+        'user_id': FieldValue.arrayRemove([FirebaseAuth.instance.currentUser!.uid])
+      });
+    } catch (e) {
+      print("Error canceling notification and updating Firestore: $e");
+    }
   }
 }

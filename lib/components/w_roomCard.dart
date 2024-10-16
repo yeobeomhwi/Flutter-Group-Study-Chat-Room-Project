@@ -62,6 +62,7 @@ class _RoomCardState extends State<RoomCard> {
           .collection('study_rooms')
           .doc(docId)
           .get(); // 스터디룸 문서 가져오기
+
       if (docSnapshot.exists) {
         final reservations =
             docSnapshot.data()?['reservations'] as List<dynamic>? ?? []; // 예약 목록 가져오기
@@ -75,33 +76,10 @@ class _RoomCardState extends State<RoomCard> {
             'reservations': reservations,
           });
 
-          // Firestore에서 사용자 테이블(user)에 참여 정보 추가
-          final userDocRef = _firestore.collection('users').doc(currentUserId);
+          // 사용자 문서에서 participationList 업데이트
+          await _updateParticipationList(currentUserId, docId);
 
           // 사용자 정보 가져오기
-          final userDocSnapshot = await userDocRef.get();
-          if (userDocSnapshot.exists) {
-            // participationList를 가져와서 업데이트
-            List<dynamic> participationList = userDocSnapshot.data()?['participationList'] as List<dynamic>? ?? [];
-
-            if (!participationList.contains(docId)) {
-              participationList.add(docId); // 스터디룸 ID를 참여 목록에 추가
-              await userDocRef.update({
-                'participationList': participationList, // 업데이트된 참여 목록 저장
-              });
-              print('참여 목록이 업데이트되었습니다.');
-            } else {
-              print('이미 참여 중입니다.');
-            }
-          } else {
-            // 만약 user 문서가 존재하지 않을 경우 새 문서 생성
-            await userDocRef.set({
-              'participationList': [docId], // 새로 참여 목록 추가
-            });
-            print('새로운 참여 목록이 생성되었습니다.');
-          }
-
-
           // 상태를 갱신하여 UI 업데이트
           setState(() {
             widget.reservations = reservations; // 업데이트된 예약 상태를 UI에 반영
@@ -117,6 +95,24 @@ class _RoomCardState extends State<RoomCard> {
       print('스터디룸 참여 중 오류 발생: $e'); // 오류 처리
     }
   }
+
+// participationList 업데이트 함수
+  Future<void> _updateParticipationList(String userId, String docId) async {
+    final userDocRef = _firestore.collection('users').doc(userId);
+
+    // 사용자 문서에서 현재 participationList를 가져옴
+    final userDocSnapshot = await userDocRef.get();
+    List<dynamic> participationList = userDocSnapshot.data()?['participationList'] as List<dynamic>? ?? [];
+
+    // docId를 participationList에 추가 (중복 방지)
+    if (!participationList.contains(docId)) {
+      participationList.add(docId);
+    }
+
+    // Firestore에 업데이트된 participationList 저장
+    await userDocRef.update({'participationList': participationList});
+  }
+
 
   // 예약 상태 업데이트 함수
   Future<void> updateReservationStatus(String docId) async {
@@ -242,6 +238,7 @@ class _RoomCardState extends State<RoomCard> {
               updateReservationStatus(widget.docId);
               NotificationService.instance
                   .reserveNotification(widget.startTime, widget.docId);
+              joinRoom(widget.docId);
             }, // 예약하기
             style: OutlinedButton.styleFrom(
               minimumSize: const Size(double.infinity, 36), // 버튼 최소 크기 설정
