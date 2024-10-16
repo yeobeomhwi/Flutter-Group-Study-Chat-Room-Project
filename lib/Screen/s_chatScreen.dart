@@ -1,10 +1,11 @@
 import 'package:app_team2/components/w_chatDrawer.dart';
 import 'package:app_team2/components/w_messageCard.dart';
-import 'package:app_team2/services/sv_chat.dart';
+import 'package:app_team2/services/sv_chatService.dart';
 import 'package:app_team2/services/sv_notification.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key, required this.room, required this.roomId});
@@ -105,9 +106,7 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Row(
         children: [
           GestureDetector(
-            onTap: () async {
-              NotificationService.instance.show();
-            },
+            onTap: () async {},
             child: Icon(
               Icons.add_circle,
               size: MediaQuery.of(context).size.width * 0.08,
@@ -139,6 +138,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final chatProvider = Provider.of<ChatService>(context);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,

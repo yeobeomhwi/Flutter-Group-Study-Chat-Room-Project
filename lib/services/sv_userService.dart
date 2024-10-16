@@ -15,7 +15,6 @@ class UserService extends ChangeNotifier {
 
   UserCredential? userCredential;
   DocumentSnapshot? userSnapshot;
-  final _fireStore = FirebaseFirestore.instance;
 
   Future<void> loginUser(String email, String password) async {
     try {
@@ -44,7 +43,7 @@ class UserService extends ChangeNotifier {
   }
 
   Stream<DocumentSnapshot> fetchUserData(String uid) {
-    return _fireStore.collection('users').doc(uid).snapshots();
+    return _firestore.collection('users').doc(uid).snapshots();
   }
 
   void listenUserData(String uid) {
@@ -54,13 +53,12 @@ class UserService extends ChangeNotifier {
     });
   }
 
-
   // Firestore에서 현재 사용자 이름과 프로필 이미지를 가져오는 메서드
   Future<Map<String, dynamic>> getUserNameImage() async {
     User? user = _auth.currentUser; // 현재 로그인한 사용자
     if (user != null) {
       DocumentSnapshot userDoc =
-      await _firestore.collection('users').doc(user.uid).get();
+          await _firestore.collection('users').doc(user.uid).get();
       return {
         'name': userDoc['name'], // Firestore에서 이름 가져오기
         'profileimage': userDoc['profileimage'], // 프로필 이미지 가져오기
@@ -68,6 +66,7 @@ class UserService extends ChangeNotifier {
     }
     throw Exception('사용자가 로그인되어 있지 않습니다.');
   }
+
   // 사용자 이름을 업데이트하는 메서드
   Future<void> updateUserName(String newName) async {
     User? user = _auth.currentUser; // 현재 로그인한 사용자
@@ -93,16 +92,15 @@ class UserService extends ChangeNotifier {
         var status = await Permission.contacts.status;
         if (status.isGranted) {
           print('갤러리 허락됨');
-        }else{
+        } else {
           print('갤러리 거절됨.');
           Permission.contacts.request();
         }
 
-
-
         // 권한이 허용된 경우 이미지 선택
         final ImagePicker picker = ImagePicker();
-        final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+        final XFile? image =
+            await picker.pickImage(source: ImageSource.gallery);
 
         if (image != null) {
           // 선택한 이미지 파일
@@ -132,6 +130,4 @@ class UserService extends ChangeNotifier {
       throw Exception('사용자가 로그인되어 있지 않습니다.');
     }
   }
-
-
 }
