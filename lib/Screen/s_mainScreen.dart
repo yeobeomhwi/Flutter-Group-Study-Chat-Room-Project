@@ -19,7 +19,13 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title:  const Center(child: Text('스터디 방 목록')),),
+      appBar: AppBar(
+        title: Center(
+          child: Text(
+            _currentIndex == 0 ? '스터디 방 목록' : '설정',
+          ),
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(10.0),
         child: _screens[_currentIndex],
@@ -45,4 +51,3 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
-
