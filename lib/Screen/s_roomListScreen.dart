@@ -382,11 +382,10 @@ class _RoomListScreenState extends State<RoomListScreen>
                 Expanded(
                   child: ListView.builder(
                     controller: _scrollController,
-                    itemCount: _rooms.length + (_hasMore ? 1 : 0),
+                    itemCount: _rooms.length + (_isLoading && _hasMore ? 1 : 0),
                     // 더 불러올 수 있을 경우 로딩 인디케이터 추가
                     itemBuilder: (context, index) {
-                      if (index == _rooms.length) {
-                        // 마지막 아이템에 로딩 인디케이터 표시
+                      if (index == _rooms.length && _isLoading && _hasMore) {
                         return const Column(
                           children: [
                             SizedBox(height: 10),

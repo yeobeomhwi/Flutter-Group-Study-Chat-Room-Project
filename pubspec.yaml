@@ -213,6 +213,7 @@ dependencies:
   provider: ^6.1.2
   firebase_storage: ^12.3.3
   image_picker: ^1.1.2
+  flex_color_scheme: ^7.3.1
 
 dev_dependencies:
   flutter_test:
