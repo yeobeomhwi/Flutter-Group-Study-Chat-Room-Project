@@ -25,6 +25,7 @@ class _MainScreenState extends State<MainScreen> {
         title: Center(
           child: Text(
             _currentIndex == 0 ? '스터디 방 목록' : '설정',
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
         ),
       ),

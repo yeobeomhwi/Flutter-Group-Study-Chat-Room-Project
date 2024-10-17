@@ -291,13 +291,15 @@ class _RoomListScreenState extends State<RoomListScreen>
                               endTime: (room['endTime'] as Timestamp).toDate(),
                               maxParticipants: room['maxParticipants'],
                               topic: room['topic'],
-                              imageUrl: 'https://picsum.photos/200/200',
+                              imageUrl: room['hostProfileImage'] != null &&
+                                  room['hostProfileImage'].isNotEmpty
+                                  ? room['hostProfileImage']
+                                  : 'https://picsum.photos/200/200', // 프로필 이미지가 없을 때 기본 이미지 사용
                               reservations: reservations,
                               startStudy: room['startStudy'],
                               currentUserId: currentUserId,
                               docId: room['room_id'].toString(),
                               onCardTap: () {
-                                print(room['docId']);
                                 Provider.of<ChatService>(context, listen: false)
                                     .listenUserData(room['docId']);
                                 GoRouter.of(context).push('/Chat', extra: {

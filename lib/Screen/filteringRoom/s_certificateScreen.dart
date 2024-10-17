@@ -1,8 +1,9 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../components/base_scrollMixin.dart';
 import '../../components/w_roomCard.dart';
 
 class CertificateScreen extends StatefulWidget {
@@ -12,172 +13,231 @@ class CertificateScreen extends StatefulWidget {
   State<CertificateScreen> createState() => _CertificateScreenState();
 }
 
-class _CertificateScreenState extends State<CertificateScreen> {
+class _CertificateScreenState extends State<CertificateScreen>
+    with ScrollMixin<CertificateScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  // ScrollController 추가
+  final ScrollController _scrollController = ScrollController();
   List<Map<String, dynamic>> _rooms = [];
-  String currentUserId = ''; // 현재 사용자 ID
-  bool _isLoading = true; // 로딩 상태 관리
+  String currentUserId = '';
+  bool _isLoading = true;
+  bool _hasMore = true; // 더 불러올 수 있는지 여부
+  DocumentSnapshot? _lastDocument; // 마지막 문서 저장
 
   @override
   void initState() {
     super.initState();
-    _initializeUserAndRooms(); // 사용자와 방 정보 초기화
+    _getCurrentUser();
 
-    // Timer 설정: 1분마다 _checkStartTimes 호출
+    // 스크롤 이벤트 리스너 추가
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels ==
+          _scrollController.position.maxScrollExtent) {
+        onScroll();
+      }
+    });
+
     Timer.periodic(const Duration(seconds: 10), (timer) {
       _checkStartTimes();
-      _fetchRooms();
     });
+
+    // 초기 데이터 로드
+    _loadInitialRooms();
   }
 
-  // 사용자 정보 및 방 정보 가져오는 메서드
-  Future<void> _initializeUserAndRooms() async {
-    try {
-      await _getCurrentUser(); // 현재 사용자 ID 가져오기
-      await _fetchRooms(); // 방 정보 가져오기
-      await _checkStartTimes(); // 시작 시간 체크
-    } catch (e) {
-      print('초기화 중 오류 발생: $e');
-    }
-  }
-
-  // 현재 로그인된 사용자 ID를 가져오는 메서드
   Future<void> _getCurrentUser() async {
     final user = _auth.currentUser;
     if (user != null) {
       setState(() {
-        currentUserId = user.uid; // 사용자 ID 저장
+        currentUserId = user.uid;
       });
     } else {
       throw Exception('사용자가 로그인되어 있지 않습니다.');
     }
   }
 
-// Firestore에서 방 정보 가져오는 메서드
-  Future<void> _fetchRooms() async {
-    try {
-      final snapshot = await _firestore
-          .collection('study_rooms')
-          .where('topic', isEqualTo: '자격증') // 필터링 조건 추가
-          .get();
+  // 초기 방 목록을 가져오는 메서드
+  Future<void> _loadInitialRooms() async {
+    setState(() {
+      _isLoading = true;
+    });
 
-      setState(() {
-        _rooms = snapshot.docs.map((doc) {
-          final data = doc.data();
-          final startTime = (data['startTime'] as Timestamp).toDate();
-          final endTime = (data['endTime'] as Timestamp).toDate();
-          final createDate =
-              (data['createDate'] as Timestamp).toDate(); // createDate 가져오기
-          final reservations =
-              data['reservations'] as List<dynamic>? ?? []; // 변경된 부분
+    QuerySnapshot snapshot = await _firestore
+        .collection('study_rooms')
+        .where('topic', isEqualTo: '자격증')
+        .limit(6) // 처음에 로드할 문서 수 제한
+        .get();
 
-          return {
-            'docId': doc.id,
-            ...data,
-            'startTime': startTime,
-            'endTime': endTime,
-            'createDate': createDate, // createDate 추가
-            'reservations': reservations, // reservations도 추가
-          };
-        }).toList();
+    if (snapshot.docs.isNotEmpty) {
+      _rooms = snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        final startTime = (data['startTime'] as Timestamp).toDate();
+        final endTime = (data['endTime'] as Timestamp).toDate();
+        final createDate = (data['createDate'] as Timestamp).toDate();
+        final reservations = data['reservations'] as List<dynamic>? ?? [];
 
-        // createDate를 기준으로 최신순 정렬
-        _rooms.sort((a, b) => b['createDate'].compareTo(a['createDate']));
-      });
-    } catch (e) {
-      print('방 목록을 불러오는 중 오류 발생: $e');
-    } finally {
-      setState(() {
-        _isLoading = false; // 로딩 완료
-      });
+        return {
+          'docId': doc.id,
+          ...data,
+          'startTime': startTime,
+          'endTime': endTime,
+          'createDate': createDate,
+          'reservations': reservations,
+        };
+      }).toList();
+
+      _lastDocument = snapshot.docs.last; // 마지막 문서 저장
+    } else {
+      _hasMore = false; // 더 이상 불러올 문서가 없으면 false로 설정
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _loadMoreRooms() async {
+    if (!_hasMore || _isLoading)
+      return; // Don't load more if there's no more data or it's already loading
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    QuerySnapshot snapshot = await _firestore
+        .collection('study_rooms')
+        .where('topic', isEqualTo: '자격증')
+        .startAfterDocument(_lastDocument!) // Start after the last document
+        .limit(10) // Limit number of documents
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      _rooms.addAll(snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        final startTime = (data['startTime'] as Timestamp).toDate();
+        final endTime = (data['endTime'] as Timestamp).toDate();
+        final createDate = (data['createDate'] as Timestamp).toDate();
+        final reservations = data['reservations'] as List<dynamic>? ?? [];
+
+        return {
+          'docId': doc.id,
+          ...data,
+          'startTime': startTime,
+          'endTime': endTime,
+          'createDate': createDate,
+          'reservations': reservations,
+        };
+      }).toList());
+
+      _lastDocument = snapshot.docs.last; // Update last document
+    } else {
+      _hasMore = false; // No more documents to load
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  // 무한 스크롤에서 호출되는 메서드
+  @override
+  void onScroll() {
+    if (_hasMore && !_isLoading) {
+      _loadMoreRooms(); // 추가 방 로드
     }
   }
 
-  // 시작 시간이 되었는지 체크하여 startStudy 업데이트
   Future<void> _checkStartTimes() async {
-    print('StartStudy 작동중');
     for (var room in _rooms) {
       final startTime = room['startTime'] as DateTime;
       final docId = room['docId'];
       final startStudy = room['startStudy'];
 
-      // 현재 시간과 startTime 비교, startStudy가 false일 때만 진행
       if (!startStudy && DateTime.now().isAfter(startTime)) {
-        print('작업중: $docId 방의 시작 시간이 지났습니다.');
-        await _updateStartStudyStatus(docId); // 상태 업데이트는 비동기 처리
+        await _updateStartStudyStatus(docId);
       }
     }
   }
 
-  // Firestore에서 startStudy 상태를 true로 업데이트하는 메서드
   Future<void> _updateStartStudyStatus(String docId) async {
     try {
       await _firestore.collection('study_rooms').doc(docId).update({
         'startStudy': true,
       });
-      print('startStudy 상태 업데이트 완료');
-
-      // 방 목록 새로 고침
-      await _fetchRooms(); // 상태 업데이트 후 목록 새로 고침
     } catch (e) {
-      print('startStudy 상태 업데이트 중 오류 발생: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Center(child: Text('스터디 목록')),
-        ),
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator()) // Loading state
-            : _rooms.isEmpty
-                ? const Center(child: Text('방이 없습니다.')) // No rooms
-                : Column(
+      appBar: AppBar(
+        title: const Text('자격증',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        centerTitle: true,
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              controller: _scrollController,
+              itemCount: _rooms.length + (_isLoading && _hasMore ? 1 : 0),
+              // 더 불러올 수 있을 경우 로딩 인디케이터 추가
+              itemBuilder: (context, index) {
+                if (index == _rooms.length && _isLoading && _hasMore) {
+                  return const Column(
                     children: [
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: _rooms.length,
-                          itemBuilder: (context, index) {
-                            final room = _rooms[index];
-                            final reservations =
-                                room['reservations'] as List<dynamic>? ?? [];
-
-                            return RoomCard(
-                              title: room['title'],
-                              host: room['host'],
-                              content: room['content'],
-                              startTime: room['startTime'],
-                              endTime: room['endTime'],
-                              maxParticipants: room['maxParticipants'],
-                              topic: room['topic'],
-                              imageUrl: 'https://picsum.photos/200/200',
-                              // Temporary image URL
-                              reservations: reservations,
-                              startStudy: room['startStudy'],
-                              currentUserId: currentUserId,
-                              docId: room['docId'],
-                              onCardTap: () {
-                                GoRouter.of(context).push('/Chat', extra: {
-                                  'room': room,
-                                  'roomId': room['docId']
-                                });
-                              },
-                            );
-                          },
-                        ),
-                      ),
+                      SizedBox(height: 10),
+                      Center(child: CircularProgressIndicator())
                     ],
-                  ),
-        bottomNavigationBar: BottomNavigationBar(
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: "홈"),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.chat_bubble_outline), label: '채팅'),
-          ],
-        ));
+                  );
+                }
+
+                final room = _rooms[index];
+                final reservations =
+                    room['reservations'] as List<dynamic>? ?? [];
+
+                return RoomCard(
+                  title: room['title'],
+                  host: room['host'],
+                  content: room['content'],
+                  startTime: room['startTime'],
+                  endTime: room['endTime'],
+                  maxParticipants: room['maxParticipants'],
+                  topic: room['topic'],
+                  imageUrl: room['hostProfileImage'] != null &&
+                          room['hostProfileImage'].isNotEmpty
+                      ? room['hostProfileImage']
+                      : 'https://picsum.photos/200/200',
+                  // 프로필 이미지가 없을 때 기본 이미지 사용
+                  reservations: reservations,
+                  startStudy: room['startStudy'],
+                  currentUserId: currentUserId,
+                  docId: room['docId'],
+                  onCardTap: () {
+                    GoRouter.of(context).push('/Chat',
+                        extra: {'room': room, 'roomId': room['docId']});
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          GoRouter.of(context).push('/CreateRoom');
+        },
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 }

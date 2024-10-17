@@ -31,7 +31,7 @@ void main() async {
     NotificationService.instance.initializeNotification();
   }).catchError((error) {
     // Firebase 초기화 실패 시 에러 처리
-    print("Firebase 초기화 실패: $error");
+    // print("Firebase 초기화 실패: $error");
   });
 }
 

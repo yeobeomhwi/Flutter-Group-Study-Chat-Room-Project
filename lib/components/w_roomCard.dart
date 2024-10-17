@@ -84,15 +84,9 @@ class _RoomCardState extends State<RoomCard> {
           setState(() {
             widget.reservations = reservations; // 업데이트된 예약 상태를 UI에 반영
           });
-        } else {
-          // 이미 참여 중인 경우, 경고 메시지 또는 알림을 표시할 수 있음
-          print('이미 참여 중입니다.'); // 디버그용 로그
         }
-      } else {
-        print('문서가 존재하지 않습니다.'); // 문서가 없을 경우
-      }
+      } 
     } catch (e) {
-      print('스터디룸 참여 중 오류 발생: $e'); // 오류 처리
     }
   }
 

@@ -1,8 +1,7 @@
-import 'package:app_team2/components/w_roomCard.dart';
+import '../components/w_roomCard.dart' show RoomCard;
 import 'package:app_team2/services/sv_userService.dart';
 import 'package:app_team2/utils/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -19,7 +18,6 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final UserService _userService = UserService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance; // Firebase 인증 인스턴스
   String currentUserId = ''; // 현재 로그인한 사용자 ID
 
   String? _profileImageUrl;
@@ -35,7 +33,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
       _fetchUserData();
     }).catchError((error) {
-      print('사용자 정보를 가져오는 중 오류 발생: $error');
+      // print('사용자 정보를 가져오는 중 오류 발생: $error');
     });
   }
 
@@ -50,7 +48,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             : [];
       });
     } catch (e) {
-      print('사용자 데이터를 가져오는 중 오류 발생: $e');
+      // print('사용자 데이터를 가져오는 중 오류 발생: $e');
     }
   }
 
@@ -60,13 +58,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (_participationList != null) {
         for (String roomId in _participationList!) {
           DocumentSnapshot roomSnapshot =
-              await _firestore.collection('study_rooms').doc(roomId).get();
+          await _firestore.collection('study_rooms').doc(roomId).get();
           rooms.add(roomSnapshot);
         }
       }
       return rooms;
     } catch (e) {
-      print('방 데이터를 가져오는 중 오류 발생: $e');
+      // print('방 데이터를 가져오는 중 오류 발생: $e');
       return [];
     }
   }
@@ -76,105 +74,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: SafeArea(
-        child: Center(
+        child: SingleChildScrollView(
           child: Column(
             children: [
-              ClipOval(
-                child: _profileImageUrl != null
-                    ? Image.network(
-                        _profileImageUrl!,
-                        width: MediaQuery.of(context).size.width * 0.5,
-                        height: MediaQuery.of(context).size.width * 0.5,
-                        fit: BoxFit.cover,
-                      )
-                    : Image.asset(
-                        'assets/images/default_profile.png',
-                        width: MediaQuery.of(context).size.width * 0.5,
-                        height: MediaQuery.of(context).size.width * 0.5,
-                        fit: BoxFit.cover,
-                      ),
-              ),
-              const SizedBox(height: 10),
-              Text(_userName ?? 'Loading...',
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 30),
-
-              // 참여 방 데이터 표시
-              Expanded(
-                child: FutureBuilder<List<DocumentSnapshot>>(
-                  future: _fetchRooms(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (snapshot.hasError) {
-                      return const Center(child: Text('오류가 발생했습니다.'));
-                    } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-                      List<DocumentSnapshot> rooms = snapshot.data!;
-                      return ListView.builder(
-                        scrollDirection: Axis.vertical,
-                        itemCount: rooms.length,
-                        itemBuilder: (context, index) {
-                          var roomData =
-                              rooms[index].data() as Map<String, dynamic>;
-
-                          return Container(
-                            width: MediaQuery.of(context).size.width * 0.9,
-                            margin: const EdgeInsets.symmetric(
-                                vertical: 5, horizontal: 10),
-                            child: Card(
-                              elevation: 4,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8.0, vertical: 10.0),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            roomData['title'] ?? '방 제목 없음',
-                                            style: const TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                          Text(roomData['host'] ?? '호스트 정보 없음'),
-                                        ],
-                                      ),
-                                    ),
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        print(rooms[index].id); // DocumentSnapshot의 id 속성 사용
-                                        Provider.of<ChatService>(context, listen: false)
-                                            .listenUserData(rooms[index].id);
-                                        GoRouter.of(context).push('/Chat', extra: {
-                                          'room': roomData,
-                                          'roomId': rooms[index].id,
-                                        });
-                                      },
-                                      child: const Text('참여하기'),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    } else {
-                      return const Center(child: Text('참여 중인 방이 없습니다.'));
-                    }
-                  },
+              // 프로필 이미지
+              Center(
+                child: ClipOval(
+                  child: _profileImageUrl != null
+                      ? Image.network(
+                    _profileImageUrl!,
+                    width: MediaQuery
+                        .of(context)
+                        .size
+                        .width * 0.3,
+                    height: MediaQuery
+                        .of(context)
+                        .size
+                        .width * 0.3,
+                    fit: BoxFit.cover,
+                  )
+                      : Image.asset(
+                    'assets/images/default_profile.png',
+                    width: MediaQuery
+                        .of(context)
+                        .size
+                        .width * 0.3,
+                    height: MediaQuery
+                        .of(context)
+                        .size
+                        .width * 0.3,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
+              const SizedBox(height: 5),
 
+              // 사용자 이름
+              Text(
+                _userName ?? 'Loading...',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 10),
+
               // 이름 변경, 프로필 사진 변경, 로그아웃 버튼
               _buildActionButton(context, '이름 변경', () {
                 ChangeNameDialog.show(context, _userService, _fetchUserData);
@@ -187,6 +131,76 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 await UserService.instance.logout();
                 GoRouter.of(context).go('/Login');
               }),
+              const Divider(),
+              const Text(
+                '참여중인 방',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              // 참여 방 데이터 표시
+              SizedBox(
+                height: MediaQuery
+                    .of(context)
+                    .size
+                    .height * 0.48, // 높이 조정
+                child: FutureBuilder<List<DocumentSnapshot>>(
+                  future: _fetchRooms(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return const Center(child: Text('오류가 발생했습니다.'));
+                    } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                      List<DocumentSnapshot> rooms = snapshot.data!;
+                      return ListView.builder(
+                        itemCount: rooms.length,
+                        itemBuilder: (context, index) {
+                          var roomData =
+                          rooms[index].data() as Map<String, dynamic>;
+
+                          final reservations =
+                              roomData['reservations'] as List<dynamic>? ?? [];
+
+                          return RoomCard(
+                            title: roomData['title'],
+                            host: roomData['host'],
+                            content: roomData['content'],
+                            startTime:
+                            (roomData['startTime'] as Timestamp).toDate(),
+                            endTime: (roomData['endTime'] as Timestamp)
+                                .toDate(),
+                            maxParticipants: roomData['maxParticipants'],
+                            topic: roomData['topic'],
+                            imageUrl: roomData['hostProfileImage'] != null &&
+                                roomData['hostProfileImage'].isNotEmpty
+                                ? roomData['hostProfileImage']
+                                : 'https://picsum.photos/200/200',
+                            // 프로필 이미지가 없을 때 기본 이미지 사용
+                            reservations: reservations,
+                            startStudy: roomData['startStudy'],
+                            currentUserId: currentUserId,
+                            docId: roomData['room_id'].toString(),
+                            onCardTap: () {
+                              Provider.of<ChatService>(context, listen: false)
+                                  .listenUserData(rooms[index].id);
+                              GoRouter.of(context).push('/Chat', extra: {
+                                'room': roomData,
+                                'roomId': rooms[index].id,
+                              });
+                            },
+                          );
+                        },
+                      );
+                    } else {
+                      return const Center(child: Text('참여 중인 방이 없습니다.'));
+                    }
+                  },
+                ),
+              ),
+              const Divider(),
+              const SizedBox(height: 10),
             ],
           ),
         ),
@@ -194,15 +208,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildActionButton(
-      BuildContext context, String label, VoidCallback onPressed) {
-    return SizedBox(
-      width: MediaQuery.of(context).size.width * 0.5,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(backgroundColor: primary_color),
-        child: Text(label, style: const TextStyle(color: Colors.white)),
+  Widget _buildActionButton(BuildContext context, String label, VoidCallback onPressed) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: SizedBox(
+        width: double.infinity,  // 가로 크기를 최대치로 설정
+        child: ElevatedButton(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: primary_color,
+            minimumSize: const Size(double.infinity, 48),  // 버튼의 높이를 48로 설정
+          ),
+          child: Text(label, style: const TextStyle(color: Colors.white)),
+        ),
       ),
     );
   }
+
 }
