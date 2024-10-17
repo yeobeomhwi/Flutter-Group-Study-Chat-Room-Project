@@ -39,7 +39,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-
   Future<void> _fetchUserData() async {
     try {
       final userData = await _userService.getUserNameImage();
@@ -150,7 +149,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       ),
                                     ),
                                     ElevatedButton(
-                                      onPressed: () {},
+                                      onPressed: () {
+                                        print(rooms[index].id); // DocumentSnapshot의 id 속성 사용
+                                        Provider.of<ChatService>(context, listen: false)
+                                            .listenUserData(rooms[index].id);
+                                        GoRouter.of(context).push('/Chat', extra: {
+                                          'room': roomData,
+                                          'roomId': rooms[index].id,
+                                        });
+                                      },
                                       child: const Text('참여하기'),
                                     ),
                                   ],
