@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 class ChatDrawer extends StatelessWidget {
   const ChatDrawer({super.key, required this.room});
 
+  // room이 아닌 프로바이더에서 받아옴
   final room;
 
   @override
