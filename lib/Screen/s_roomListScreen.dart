@@ -294,9 +294,10 @@ class _RoomListScreenState extends State<RoomListScreen>
                               currentUserId: currentUserId,
                               docId: room['room_id'].toString(),
                               onCardTap: () {
-                                print(room['docId']);
                                 Provider.of<ChatService>(context, listen: false)
                                     .listenUserData(room['docId']);
+                                Provider.of<ChatService>(context, listen: false)
+                                    .listenRoomData(room['docId']);
                                 GoRouter.of(context).push('/Chat', extra: {
                                   'room': room,
                                   'roomId': room['docId']
@@ -413,6 +414,8 @@ class _RoomListScreenState extends State<RoomListScreen>
                         onCardTap: () {
                           Provider.of<ChatService>(context, listen: false)
                               .listenUserData(room['docId']);
+                          Provider.of<ChatService>(context, listen: false)
+                              .listenRoomData(room['docId']);
                           GoRouter.of(context).push('/Chat',
                               extra: {'room': room, 'roomId': room['docId']});
                         },

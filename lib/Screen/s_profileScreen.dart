@@ -46,6 +46,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: SafeArea(
         child: Center(
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // 프로필 이미지를 ClipOval로 감싸서 원형으로 만들기
               ClipOval(

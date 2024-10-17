@@ -2,6 +2,7 @@ import 'package:app_team2/services/sv_notification.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 // RoomCard 클래스: 각 스터디룸 정보를 보여주는 카드 위젯
 class RoomCard extends StatefulWidget {
@@ -65,7 +66,8 @@ class _RoomCardState extends State<RoomCard> {
 
       if (docSnapshot.exists) {
         final reservations =
-            docSnapshot.data()?['reservations'] as List<dynamic>? ?? []; // 예약 목록 가져오기
+            docSnapshot.data()?['reservations'] as List<dynamic>? ??
+                []; // 예약 목록 가져오기
 
         // 현재 사용자가 이미 참여 중인지 확인
         if (!reservations.contains(currentUserId)) {
@@ -102,7 +104,8 @@ class _RoomCardState extends State<RoomCard> {
 
     // 사용자 문서에서 현재 participationList를 가져옴
     final userDocSnapshot = await userDocRef.get();
-    List<dynamic> participationList = userDocSnapshot.data()?['participationList'] as List<dynamic>? ?? [];
+    List<dynamic> participationList =
+        userDocSnapshot.data()?['participationList'] as List<dynamic>? ?? [];
 
     // docId를 participationList에 추가 (중복 방지)
     if (!participationList.contains(docId)) {
@@ -113,7 +116,6 @@ class _RoomCardState extends State<RoomCard> {
     await userDocRef.update({'participationList': participationList});
   }
 
-
   // 예약 상태 업데이트 함수
   Future<void> updateReservationStatus(String docId) async {
     try {
@@ -123,9 +125,10 @@ class _RoomCardState extends State<RoomCard> {
           .get(); // 스터디룸 문서 가져오기
       if (docSnapshot.exists) {
         final reservations =
-            docSnapshot.data()?['reservations'] as List<dynamic>? ?? []; // 예약 목록 가져오기
+            docSnapshot.data()?['reservations'] as List<dynamic>? ??
+                []; // 예약 목록 가져오기
         final currentUserReservation =
-        reservations.contains(currentUserId); // 현재 사용자의 예약 여부 확인
+            reservations.contains(currentUserId); // 현재 사용자의 예약 여부 확인
 
         // 예약 추가 또는 취소
         if (currentUserReservation) {
@@ -135,8 +138,9 @@ class _RoomCardState extends State<RoomCard> {
           final userDocRef = _firestore.collection('users').doc(currentUserId);
           final userDocSnapshot = await userDocRef.get();
           if (userDocSnapshot.exists) {
-            List<dynamic> participationList =
-                userDocSnapshot.data()?['participationList'] as List<dynamic>? ?? [];
+            List<dynamic> participationList = userDocSnapshot
+                    .data()?['participationList'] as List<dynamic>? ??
+                [];
 
             if (participationList.contains(docId)) {
               participationList.remove(docId); // 참여 목록에서 스터디룸 ID 삭제
@@ -166,7 +170,6 @@ class _RoomCardState extends State<RoomCard> {
       print('예약 상태 업데이트 중 오류 발생: $e'); // 오류 처리
     }
   }
-
 
   // 현재 사용자 ID 가져오기
   Future<void> _getCurrentUser() async {
@@ -249,7 +252,7 @@ class _RoomCardState extends State<RoomCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: 210, // 카드 너비
       height: open ? 300 : 140, // 카드 높이 (펼쳐지면 300, 접히면 140)
       child: Card(
@@ -278,11 +281,13 @@ class _RoomCardState extends State<RoomCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(widget.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                                fontSize: 16,
+                                fontSize: 20,
                                 fontWeight: FontWeight.bold)), // 제목 스타일
                         Text(widget.host,
-                            style: const TextStyle(fontSize: 12)), // 호스트 이름 스타일
+                            style: const TextStyle(fontSize: 14)), // 호스트 이름 스타일
                       ],
                     ),
                   ),
@@ -312,14 +317,17 @@ class _RoomCardState extends State<RoomCard> {
               const SizedBox(height: 8), // 설명과 시간 사이 여백
               if (open) ...[
                 // 스터디 시작 및 종료 시간 표시
-                Text('시작 시간 : ${widget.startTime}',
-                    style: const TextStyle(fontSize: 12)), // 시작 시간
-                Text('종료 시간 : ${widget.endTime}',
-                    style: const TextStyle(fontSize: 12)), // 종료 시간
+                Text(
+                    '시작 시간 : ${DateFormat('yy-MM-dd hh:mm').format(widget.startTime)}',
+                    style: const TextStyle(fontSize: 14)), // 시작 시간
+                Text(
+                    '종료 시간 : ${DateFormat('yy-MM-dd hh:mm').format(widget.endTime)}',
+                    style: const TextStyle(fontSize: 14)), // 종료 시간
                 const SizedBox(height: 10), // 시간과 참석 인원 사이 여백
                 // 참석 인원 정보 표시
                 Text(
-                    '현재 인원 : ${widget.reservations.length} / ${widget.maxParticipants}'), // 참석 인원
+                    '현재 인원 : ${widget.reservations.length} / ${widget.maxParticipants}',
+                    style: const TextStyle(fontSize: 14)), // 참석 인원
                 const SizedBox(height: 10), // 참석 인원과 버튼 사이 여백
                 // 예약 버튼 또는 참여 버튼 생성
                 buildButton(),

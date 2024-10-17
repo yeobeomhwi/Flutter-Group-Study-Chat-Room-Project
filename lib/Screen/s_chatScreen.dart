@@ -144,7 +144,7 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: Colors.transparent,
         centerTitle: true,
         title: Text(
-          '${widget.room['title']} (${widget.room['reservations'].length} / ${widget.room['maxParticipants']})',
+          '${widget.room['title']} (${chatProvider.roomSnapshot!['reservations'].length} / ${chatProvider.roomSnapshot!['maxParticipants']})',
         ),
       ),
       endDrawer: ChatDrawer(room: widget.room),
