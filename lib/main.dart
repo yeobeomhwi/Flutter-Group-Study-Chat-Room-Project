@@ -2,6 +2,7 @@ import 'package:app_team2/router/r_router.dart';
 import 'package:app_team2/services/sv_chatService.dart';
 import 'package:app_team2/services/sv_notification.dart';
 import 'package:app_team2/services/sv_userService.dart';
+import 'package:app_team2/utils/colors.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -45,6 +46,8 @@ class MyApp extends StatelessWidget {
         title: 'alarm_app',
         theme: ThemeData(
           scaffoldBackgroundColor: Colors.white,
+          appBarTheme: const AppBarTheme(color: Colors.white),
+          drawerTheme: const DrawerThemeData(backgroundColor: Colors.white),
           useMaterial3: true,
         ));
   }

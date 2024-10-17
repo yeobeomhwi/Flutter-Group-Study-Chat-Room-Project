@@ -7,6 +7,18 @@ class ChatService extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static final instance = ChatService();
   DocumentSnapshot? chatSnapshot;
+  DocumentSnapshot? roomSnapshot;
+
+  Stream<DocumentSnapshot> fetchRoomData(String roomId) {
+    return _firestore.collection('study_rooms').doc(roomId).snapshots();
+  }
+
+  void listenRoomData(String roomId) {
+    fetchRoomData(roomId).listen((data) {
+      roomSnapshot = data;
+      notifyListeners();
+    });
+  }
 
   Stream<DocumentSnapshot> fetchChatData(String roomId) {
     return _firestore.collection('chats').doc(roomId).snapshots();
