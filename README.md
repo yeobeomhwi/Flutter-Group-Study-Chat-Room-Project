@@ -89,3 +89,9 @@
 **채팅 예시**
 
 ![채팅](./readmeImage/Chat.gif)
+
+
+**주제 필터링 예시**
+
+![주제 필터링](./readmeImage/Filter.gif)
+
