@@ -90,3 +90,66 @@ Here’s a brief list of the main functionalities of the project:
 **Topic Filtering Example**
 
 ![Topic Filtering](./readmeImage/Filter.gif)
+
+
+## Team Introduction 
+
+- **Yeo Beom-hwi**  
+    - **Responsibilities**  
+        - UI design and implementation  
+        - Login screen and functionality  
+        - Signup screen and functionality  
+        - Database design  
+        - Main screen and functionality  
+        - Infinite scroll on the main screen  
+        - Topic filtering screen and functionality  
+        - Profile settings screen and functionality  
+
+- **Kim Hwi-jin**  
+    - **Responsibilities**  
+        - Mobile notification functionality  
+        - Reservation functionality  
+        - Chat screen and functionality  
+        - Search bar and functionality  
+        - Navigation management using Go Router  
+        - Profile settings screen and functionality  
+
+## Database Structure
+
+### Chats Table
+- **RoomID**  (Document ID)  
+  - **Messages** (Array)  
+    - **Message_Text**: String  
+    - **Sent_At**: Timestamp  
+    - **User_ID**: String  
+
+### reservations Table
+- **RoomID** (Document ID)  
+    - **Notification_Sent**: Boolean  
+    - **Reservation_Time**: Timestamp  
+    - **User_ID** (Array)  
+        - **User_ID**: String  
+
+### Study_rooms Table
+- **Room_ID** (Document ID)  
+  - **Content**: String  
+  - **Create_Date**: Timestamp  
+  - **End_Time**: Timestamp  
+  - **Host**: String  
+  - **Host_Profile_Image**: String  
+  - **Max_Participants**: Number  
+  - **Reservations** (Array)  
+    - **User_ID**: String  
+  - **Room_ID**: Number  
+  - **Start_Study**: Boolean  
+  - **Start_Time**: Timestamp  
+  - **Title**: String  
+  - **Topic**: String  
+
+### Users Table
+- **User_ID** (Document ID)  
+  - **Email**: String  
+  - **Name**: String  
+  - **Participation_List** (Array)  
+    - **Room_ID**: String  
+  - **Profile_Image**: String  
