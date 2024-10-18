@@ -39,7 +39,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _fetchUserData() async {
     try {
-      final userData = await _userService.getUserNameImage();
+      final userData = await _userService.getUserNameImageParticipationList();
       setState(() {
         _profileImageUrl = userData['profileimage'];
         _userName = userData['name'];
@@ -76,7 +76,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // 프로필 이미지
               Center(
